@@ -18,7 +18,9 @@
   },
   "homepage": "https://github.com/RPHLuo/BigBlueTutor#readme",
   "dependencies": {
+    "body-parser": "^1.17.2",
     "express": "^4.15.4",
-    "express-authentication": "^0.3.2"
+    "express-authentication": "^0.3.2",
+    "ws": "^3.1.0"
   }
 }
