@@ -1,7 +1,7 @@
 var crypto = require('crypto');
 var https = require('https');
 
-function createRoom(meetingId, fullName) {
+function createRoom(meetingId, fullName, callback) {
   const defaultModeratorPassword = "mp";
   const defaultAttendeePassword = "ap";
   var meetingId = meetingId.split(' ').join('+');
@@ -13,15 +13,16 @@ function createRoom(meetingId, fullName) {
   url += params + '&checksum=' + checksum;
   
   https.get(url, function(res) {
-    console.log(res);
+//    console.log(res);
     var meetingUrl = 'https://tutor.blindside-dev.com/bigbluebutton/api/join?';
-    var params = 'fullName=' + fullName + '&meetingID=' + meetingId + '&password=' + defaultAttendeePassword;
+    var voiceBridge = Math.floor(Math.random() * (90000) + 10000);
+    var params = 'fullName=' + fullName + '&meetingID=' + meetingId + '&password=' + defaultAttendeePassword + '&voiceBridge=' + voiceBridge + '&redirectClient=true&clientURL=https://tutor.blindside-dev.com/html5client/join';
     var checksum = crypto.createHash('sha1').update('join' + params + salt).digest('hex');
     meetingUrl += params + '&checksum=' + checksum;
 
     console.log(meetingUrl);    
 
-    return meetingUrl;
+    callback(meetingUrl);
   });
 }
 

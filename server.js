@@ -21,12 +21,17 @@ app.use(bodyParser.json());
 
 app.post('/api/register', function(req, res) {
   if (req.body && req.body.auth && req.body.auth.username && req.body.auth.password) {
-    if (users[req.body.auth.username]) {
-      res.status(409).send('USERNAME HAVE ALREADY BEEN TAKEN');
+    var username = req.body.auth.username.trim();
+    if (username.indexOf(' ') == -1) {
+      if (users[req.body.auth.username]) {
+        res.status(409).send('USERNAME HAVE ALREADY BEEN TAKEN');
+      }else {
+        var user = User(req.body.auth.username, req.body.auth.password);
+        users[req.body.auth.username] = User(req.body.auth.username, req.body.auth.password);
+        res.send('USER REGISTERED');
+      }
     }else {
-      var user = User(req.body.auth.username, req.body.auth.password);
-      users[req.body.auth.username] = User(req.body.auth.username, req.body.auth.password);
-      res.send('USER REGISTERED');
+      res.status(400).send("Username cannot contain spaces");
     }
   }else {
     res.status(400).send("Missing username and/or password");
@@ -43,7 +48,7 @@ app.use(function authenticate(req, res, next) {
 });
 
 
-app.post('/api/login', auth.required(), function(req, res) { 
+app.post('/api/login', function(req, res) { 
   res.send("SUCCESS");
 });
 
@@ -74,33 +79,47 @@ wss.on('connection', function connection(ws, req) {
       case 'addFriend':
         var friend = users[req.friendUsername]
         if (friend) {
-          if(friend.pendingFriends.indexOf(user.name) != -1 || friend.friends.indexOf(user.name) != -1) {
-console.log('1');
+          if(friend.pendingFriends.indexOf(user.username) != -1 || friend.friends.indexOf(user.username) != -1) {
             ws.send("Request has already been sent");
-          }else if(user.pendingFriends.indexOf(friend.name) != -1) {
-console.log('2');
+          }else if(user.pendingFriends.indexOf(friend.username) != -1) {
             //add both friends
-            user.pendingFriends.splice(user.pendingFriends.indexOf(friend.name), 1);
-            friend.friends.push(user.name);
+            user.pendingFriends.splice(user.pendingFriends.indexOf(friend.username), 1);
+            user.friends.push(friend.username);
+            friend.friends.push(user.username);
             if (friend.active && friend.ws) {
+/*              var friendData = [];
+              for(friend in friend.friends) {
+                if(users[friend].ws) {
+                  friendData.push({username: friend, active: true});
+                }else {
+                  friendData.push({username: friend, active: false});
+                }
+              }*/
               friend.ws.send(JSON.stringify({
                 method:"friends",
-                friends: user.friends,
-                friendRequests: user.friends
+                friends: friend.friends,
+                friendRequests: friend.pendingFriends
               }));
             }
+/*            var friendData = [];
+            for(friend in user.friends) {
+              if(users[friend].ws) {
+                friendData.push({username: friend, active: true});
+              }else {
+                friendData.push({username: friend, active: false});
+              }
+            }*/
             ws.send(JSON.stringify({
                 method:"friends",
                 friends: user.friends,
-                friendRequests: user.friends
+                friendRequests: user.pendingFriends
             }));
           }else {
-console.log('3');
-            friend.pendingFriends.push(user.name);
+            friend.pendingFriends.push(user.username);
             if(friend.active && friend.ws) {
               friend.ws.send(JSON.stringify({
                 method:"friendRequest",
-                username:user.name,
+                username:user.username,
               }));
             }
           }
@@ -113,13 +132,51 @@ console.log('3');
         }
         break;
       case 'getFriends':
+//        var friendData = [];
+//        for(friend in user.friends) {
+//          if(users[friend].ws) {
+//            friendData.push({username: friend, active: true});
+//          }else {
+//            friendData.push({username: friend, active: false});
+//          }
+//        }
         ws.send(JSON.stringify({
           method:"friends",
           friends: user.friends,
-          friendRequests: user.friends
+          friendRequests: user.pendingFriends
         }));
         break;
       case 'requestMeeting':
+        var friend = users[req.friendUsername];
+        if(friend && friend.friends.indexOf(user.username)!=-1) {
+          if(user.pendingMeetings.indexOf(friend.username)==-1) {
+            if(friend.pendingMeetings.indexOf(user.username)==-1) {
+              friend.pendingMeetings.push(user.username);
+              if(friend.ws) {
+                friend.ws.send(JSON.stringify({
+                  method: "meetingRequest",
+                  username: user.username
+                }));
+              }
+            }
+          }else {
+            user.pendingMeetings.splice(user.pendingMeetings.indexOf(friend.username),1);
+            if(friend.ws){
+              createMeeting(friend.username + ' ' + user.username, user.username, function(meetingUrl) {
+                ws.send(JSON.stringify({
+                  method:"meeting",
+                  url: meetingUrl
+                }));             
+              });
+              createMeeting(friend.username + ' ' + user.username, friend.username, function(meetingUrl){
+                friend.ws.send(JSON.stringify({
+                  method:"meeting",
+                  url: meetingUrl
+                }));             
+              });
+            }
+          }
+        }
         break;
       case 'declineMeeting':
         break;
