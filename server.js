@@ -1,20 +1,217 @@
 const express = require('express');
-const auth = require('express-authentication');
+var passport = require('passport');
+var Strategy = require('passport-http').BasicStrategy;
 const app = express();
 const bodyParser = require('body-parser');
-const WebSocket = require('ws');
+
+var createMeeting = require('./meeting.js');
+
+
+var users = {}
+
+app.use(bodyParser.json())
+
+/*passport.use(new Strategy(
+  function(username, password, cb) {
+    console.log("HEELOO");
+    if (!username){
+      cb(false);
+    }else if (!users[username]) {
+      users[username] = password
+      cb(true);
+    }else if (users[username] == password) {
+      cb(true);
+    }else {
+      cb(false);
+    }
+  }
+));
+//app.use(passport.initialize());
+//app.use(passport.session());
+app.use(function(req, res, next) {
+  var username = req.body.authData.username;
+  var password = req.body.authData.password;
+  if( req.body.authData) {
+    req.headers['username'] = req.body.authData.username;
+    req.headers['password'] = req.body.authData.password;
+    var auth = 'Basic ' + new Buffer(username + ':' + password).toString('base64');
+    req.headers['Authorization'] = auth
+    console.log(req.body.authData.username);
+    console.log(req.body.authData.password);
+  }
+  next();
+});
+app.use(passport.authenticate('basic', { session: false }),
+  function(req, res) {
+    console.log(req);
+    if (req) {
+      res.json({
+        userId: 'a',
+        clientData: { data: 'a' },
+        serverData: { role: 'admin' }
+      });
+    }else {
+      res.status(403);
+    }
+  }
+);
+*/
+
+app.use(function(req, res) {
+  var username = req.body.authData.username;
+  var password = req.body.authData.password;
+  console.log(username)
+  console.log(password)
+  var role = "client"
+  //hack fix
+  if (username === "server" && password === "sp") {
+    users[username] = "sp"
+    res.json({
+      userId: username,
+      clientData: { data: 'server' },
+      serverData: { id: username, role: 'server' }
+    })
+  }else if (!username){
+    res.status(403).end();
+  }else if (!users[username]) {
+    users[username] = password
+    res.json({
+        userId: username,
+        clientData: { data: 'client' },
+        serverData: { id: username, role: 'client' }
+      });
+  }else if (users[username] == password) {
+    res.json({
+        userId: username,
+        clientData: { data: 'client' },
+        serverData: { id: username, role: 'client' }
+      });
+  }else {
+    res.status(403).end();
+  }
+});
+
+
+const deepstream = require('deepstream.io-client-js');
+const server = deepstream('tutor-back.blindside-dev.com:6020');
+
+
+server.login({
+  username: 'server',
+  password: 'sp'
+});
+
+server.rpc.provide('addContact', (data, response) => {
+  console.log(data);
+    var contact = data.contact;
+    var client = data.client;
+  server.record.has("profile/"+contact, (err, has) => {
+    if (has) {
+      var record = server.record.getRecord("profile/"+contact);
+      var clientRecord = server.record.getRecord("profile/"+client);
+      record.whenReady(() => {
+        clientRecord.whenReady(() => {
+          var pendingContacts = record.get('pendingContacts');
+          var contacts = record.get('contacts');
+          var clientPendingContacts = clientRecord.get('pendingContacts');
+          var clientContacts = clientRecord.get('contacts');
+          if (contacts.indexOf(client) == -1 && clientContacts.indexOf(contact) == -1) {
+            if (clientPendingContacts.indexOf(contact) != -1) {
+              clientContacts.push(contact);
+              clientPendingContacts.splice(clientPendingContacts.indexOf(contact), 1);
+              if (contacts.indexOf(client) == -1){
+                contacts.push(client);
+              }
+            }else if (pendingContacts.indexOf(client) == -1) {
+              pendingContacts.push(client);
+            }
+            record.set('pendingContacts', pendingContacts, () => {
+              record.set('contacts', contacts, () => {
+                server.event.emit("profile/"+contact+"/update");
+              });
+            });
+            clientRecord.set('pendingContacts', clientPendingContacts, () => {
+              clientRecord.set('contacts', clientContacts, () => {
+                server.event.emit("profile/"+client+"/update");
+              });
+            });
+          }
+        });
+      });
+    }
+  });
+});
+
+server.rpc.provide('requestMeeting', (data, response) => {
+  console.log("meeting request");
+  var contact = data.contact;
+  var client = data.client;
+  server.record.has("profile/"+contact, (err, has) => {
+    if (has) {
+      var record = server.record.getRecord("profile/"+contact);
+      var clientRecord = server.record.getRecord("profile/"+client);
+      record.whenReady(() => {
+        clientRecord.whenReady(() => {
+          console.log("1");
+          var pendingMeetings = record.get('pendingMeetings');
+          var clientPendingMeetings = clientRecord.get('pendingMeetings');
+          var requestMeetings = record.get('requestMeetings');
+          var clientRequestMeetings = clientRecord.get('requestMeetings');
+          console.log(clientPendingMeetings);
+          console.log(requestMeetings);
+          if (clientPendingMeetings.indexOf(contact) != -1 && requestMeetings.indexOf(client) != -1) {
+            console.log("1a");
+            clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
+            requestMeetings.splice(requestMeetings.indexOf(client), 1);
+            //create meeting here
+            createMeeting(contact + '/' + client, contact, function(meetingUrl) {
+              record.set('activeMeeting', meetingUrl);
+            });
+            createMeeting(contact + '/' + client, client, function(meetingUrl) {
+              clientRecord.set('activeMeeting', meetingUrl);
+            });
+          } else if (pendingMeetings.indexOf(client) == -1) {
+            console.log("1b");
+            pendingMeetings.push(client);
+            clientRequestMeetings.push(contact);
+            record.set('pendingMeetings', pendingMeetings, () => {
+              record.set('requestMeetings', requestMeetings, () => {
+                server.event.emit("profile/"+contact+"/update");
+              });
+            });
+            clientRecord.set('pendingMeetings', clientPendingMeetings, () => {
+              clientRecord.set('requestMeetings', clientRequestMeetings, () => {
+                server.event.emit("profile/"+client+"/update");
+              });
+            });
+          }
+        });
+      });
+    }
+  });
+});
+
+server.event.listen('createMeeting/.*/.*', function(match, isSubscribed, response) {
+  console.log('meeting create');
+});
+
+server.rpc.provide('test', function(data, response) {
+  
+});
+
+//const WebSocket = require('ws');
 
 var https = require('https');
 var fs = require('fs');
-var User = require('./user.js');
-var createMeeting = require('./meeting.js');
+//var User = require('./user.js');
 
 var options = {
   key: fs.readFileSync('privkey.pem'),
-  cert: fs.readFileSync('cert.pem')
+  cert: fs.readFileSync('cert.pem'),
+  strictSSL: false
 }
 
-var users = {};
+/*var users = {};
 var inactiveUsers = [];
 
 app.use(bodyParser.json());
@@ -32,7 +229,7 @@ app.post('/api/register', function(req, res) {
       }
     }else {
       res.status(400).send("Username cannot contain spaces");
-    }
+    
   }else {
     res.status(400).send("Missing username and/or password");
   }
@@ -87,28 +284,28 @@ wss.on('connection', function connection(ws, req) {
             user.friends.push(friend.username);
             friend.friends.push(user.username);
             if (friend.active && friend.ws) {
-/*              var friendData = [];
-              for(friend in friend.friends) {
-                if(users[friend].ws) {
-                  friendData.push({username: friend, active: true});
-                }else {
-                  friendData.push({username: friend, active: false});
-                }
-              }*/
+//              var friendData = [];
+//              for(friend in friend.friends) {
+//                if(users[friend].ws) {
+//                  friendData.push({username: friend, active: true});
+//                }else {
+//                  friendData.push({username: friend, active: false});
+//                }
+//              }
               friend.ws.send(JSON.stringify({
                 method:"friends",
                 friends: friend.friends,
                 friendRequests: friend.pendingFriends
               }));
             }
-/*            var friendData = [];
-            for(friend in user.friends) {
-              if(users[friend].ws) {
-                friendData.push({username: friend, active: true});
-              }else {
-                friendData.push({username: friend, active: false});
-              }
-            }*/
+//            var friendData = [];
+//            for(friend in user.friends) {
+//              if(users[friend].ws) {
+//                friendData.push({username: friend, active: true});
+//              }else {
+//                friendData.push({username: friend, active: false});
+//              }
+//            }
             ws.send(JSON.stringify({
                 method:"friends",
                 friends: user.friends,
@@ -188,6 +385,7 @@ wss.on('connection', function connection(ws, req) {
     console.log('socket closed');
   });
 });
-
-server.listen(3000);
-
+*/
+//var server = https.createServer(options, app);
+//server.listen(3000);
+app.listen(3000);
