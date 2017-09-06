@@ -101,6 +101,11 @@ server.login({
   password: 'sp'
 });
 
+var tutorRecord = server.record.getRecord('tutor')
+tutorRecord.whenReady(() => {
+  tutorRecord.set('tutors',[]);
+});
+
 server.rpc.provide('addContact', (data, response) => {
   console.log(data);
     var contact = data.contact;
@@ -146,13 +151,13 @@ server.rpc.provide('requestMeeting', (data, response) => {
   console.log("meeting request");
   var contact = data.contact;
   var client = data.client;
+  if (client === contact) { return }
   server.record.has("profile/"+contact, (err, has) => {
     if (has) {
       var record = server.record.getRecord("profile/"+contact);
       var clientRecord = server.record.getRecord("profile/"+client);
       record.whenReady(() => {
         clientRecord.whenReady(() => {
-          console.log("1");
           var pendingMeetings = record.get('pendingMeetings');
           var clientPendingMeetings = clientRecord.get('pendingMeetings');
           var requestMeetings = record.get('requestMeetings');
@@ -187,6 +192,19 @@ server.rpc.provide('requestMeeting', (data, response) => {
           }
         });
       });
+    }
+  });
+});
+
+server.rpc.provide('tutor', (data, response) => {
+  var username = data.username;
+  var password = data.password;
+  var record = tutorRecord;
+  record.whenReady(() => {
+    var tutors = record.get('tutors')
+    if (users[username] === password && tutors.indexOf(username)==-1) {
+      tutors.push(username);
+      record.set('tutors', tutors);
     }
   });
 });
