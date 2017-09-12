@@ -3,11 +3,15 @@ var passport = require('passport');
 var Strategy = require('passport-http').BasicStrategy;
 const app = express();
 const bodyParser = require('body-parser');
+const deepstream = require('deepstream.io-client-js');
+
+const server = deepstream('tutor-back.blindside-dev.com:6020');
 
 var createMeeting = require('./meeting.js');
 
-
 var users = {}
+
+var dataRecord;
 
 app.use(bodyParser.json())
 
@@ -74,13 +78,17 @@ app.use(function(req, res) {
   }else if (!username){
     res.status(403).end();
   }else if (!users[username]) {
+    //signup
     users[username] = password
+    var userList = dataRecord.get('users')
+    userList.push(username)
+    dataRecord.set('users',userList)
     res.json({
         userId: username,
         clientData: { data: 'client' },
         serverData: { id: username, role: 'client' }
       });
-  }else if (users[username] == password) {
+  }else if (users[username] === password) {
     res.json({
         userId: username,
         clientData: { data: 'client' },
@@ -92,10 +100,6 @@ app.use(function(req, res) {
 });
 
 
-const deepstream = require('deepstream.io-client-js');
-const server = deepstream('tutor-back.blindside-dev.com:6020');
-
-
 server.login({
   username: 'server',
   password: 'sp'
@@ -105,8 +109,25 @@ var tutorRecord = server.record.getRecord('tutor')
 tutorRecord.whenReady(() => {
   tutorRecord.set('tutors',[]);
 });
-
-server.rpc.provide('addContact', (data, response) => {
+dataRecord = server.record.getRecord('data')
+dataRecord.set('users',[]);
+//HARD CODED CATAGORIES FOR NOW HERE
+dataRecord.set('catagories',[
+  'English',
+  'Math',
+  'Chemistry',
+  'Physics',
+  'Biology',
+  'History',
+  'Geography',
+  'Law',
+  'Social Studies',
+  'Business',
+  'Computer Science',
+  'Miscellaneous'
+]);
+/* DOES NOT NEED PERMISSION TO STAR SOMEONE
+server.rpc.provide('starUser', (data, response) => {
   console.log(data);
     var contact = data.contact;
     var client = data.client;
@@ -146,6 +167,33 @@ server.rpc.provide('addContact', (data, response) => {
     }
   });
 });
+*/
+
+server.rpc.provide('sendMessage', (data, response) => {
+   console.log(data);
+  var contact = data.contact;
+  var client = data.client;
+  var message = data.message;
+  server.record.has("profile/"+contact, (err, has) => {
+    if (has) {
+      var record = server.record.getRecord("profile/"+contact);
+      var clientRecord = server.record.getRecord("profile/"+client);
+      record.whenReady(() => {
+        clientRecord.whenReady(() => {
+          var messages = record.get('messages');
+          if (!messages){
+            messages = {client:[{user:client,message:message}]}
+          }else if(messages[client]) {
+            messages[client].push({user:client,message:message})
+          }else {
+            messages[client] = [{user:client,message:message}]
+          }
+          record.set('messages',messages)
+        });
+     });
+    }
+  });
+});
 
 server.rpc.provide('requestMeeting', (data, response) => {
   console.log("meeting request");
@@ -162,21 +210,29 @@ server.rpc.provide('requestMeeting', (data, response) => {
           var clientPendingMeetings = clientRecord.get('pendingMeetings');
           var requestMeetings = record.get('requestMeetings');
           var clientRequestMeetings = clientRecord.get('requestMeetings');
-          console.log(clientPendingMeetings);
-          console.log(requestMeetings);
+          var messages = record.get('messages');
+          var clientMessages = clientRecord.get('messages');
+
           if (clientPendingMeetings.indexOf(contact) != -1 && requestMeetings.indexOf(client) != -1) {
-            console.log("1a");
+            messages[client].push({user: client, message: client+" accepted your meeting request"});
+            clientMessages[contact].push({user: client, message: "You accepted the meeting request"});
+            record.set('messages',messages);
+            clientRecord.set('messages',clientMessages);
+
             clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
             requestMeetings.splice(requestMeetings.indexOf(client), 1);
             //create meeting here
             createMeeting(contact + '/' + client, contact, function(meetingUrl) {
-              record.set('activeMeeting', meetingUrl);
+              record.set('meeting', meetingUrl);
             });
             createMeeting(contact + '/' + client, client, function(meetingUrl) {
-              clientRecord.set('activeMeeting', meetingUrl);
+              clientRecord.set('meeting', meetingUrl);
             });
           } else if (pendingMeetings.indexOf(client) == -1) {
-            console.log("1b");
+            messages[client].push({user: client, message: client+" is requesting a meeting"});
+            clientMessages[contact].push({user: client, message: "You requested a meeting"});
+            record.set('messages',messages);
+            clientRecord.set('messages',clientMessages);
             pendingMeetings.push(client);
             clientRequestMeetings.push(contact);
             record.set('pendingMeetings', pendingMeetings, () => {
@@ -209,12 +265,17 @@ server.rpc.provide('tutor', (data, response) => {
   });
 });
 
-server.event.listen('createMeeting/.*/.*', function(match, isSubscribed, response) {
-  console.log('meeting create');
+//Get user's messages
+server.rpc.provide('getMessages', (data, response) =>{
+  var username = data.username;
+  var record = server.record.getRecord("messages");
+  record.whenReady(() => {
+    response.send(record.get("messages"));
+  });
 });
 
-server.rpc.provide('test', function(data, response) {
-  
+server.event.listen('createMeeting/.*/.*', function(match, isSubscribed, response) {
+  console.log('meeting create');
 });
 
 //const WebSocket = require('ws');
