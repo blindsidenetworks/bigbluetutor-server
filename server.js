@@ -15,57 +15,10 @@ var dataRecord;
 
 app.use(bodyParser.json())
 
-/*passport.use(new Strategy(
-  function(username, password, cb) {
-    console.log("HEELOO");
-    if (!username){
-      cb(false);
-    }else if (!users[username]) {
-      users[username] = password
-      cb(true);
-    }else if (users[username] == password) {
-      cb(true);
-    }else {
-      cb(false);
-    }
-  }
-));
-//app.use(passport.initialize());
-//app.use(passport.session());
-app.use(function(req, res, next) {
-  var username = req.body.authData.username;
-  var password = req.body.authData.password;
-  if( req.body.authData) {
-    req.headers['username'] = req.body.authData.username;
-    req.headers['password'] = req.body.authData.password;
-    var auth = 'Basic ' + new Buffer(username + ':' + password).toString('base64');
-    req.headers['Authorization'] = auth
-    console.log(req.body.authData.username);
-    console.log(req.body.authData.password);
-  }
-  next();
-});
-app.use(passport.authenticate('basic', { session: false }),
-  function(req, res) {
-    console.log(req);
-    if (req) {
-      res.json({
-        userId: 'a',
-        clientData: { data: 'a' },
-        serverData: { role: 'admin' }
-      });
-    }else {
-      res.status(403);
-    }
-  }
-);
-*/
-
 app.use(function(req, res) {
   var username = req.body.authData.username;
   var password = req.body.authData.password;
   console.log(username)
-  console.log(password)
   var role = "client"
   //hack fix
   if (username === "server" && password === "sp") {
@@ -80,8 +33,16 @@ app.use(function(req, res) {
   }else if (!users[username]) {
     //signup
     users[username] = password
+    //instantiate with public data
+    var user = {
+      username:username,
+      position: 'no position',
+      description: '',
+      ratings: {},
+      tutor: false
+    }
     var userList = dataRecord.get('users')
-    userList.push(username)
+    userList.push(user)
     dataRecord.set('users',userList)
     res.json({
         userId: username,
@@ -105,14 +66,11 @@ server.login({
   password: 'sp'
 });
 
-var tutorRecord = server.record.getRecord('tutor')
-tutorRecord.whenReady(() => {
-  tutorRecord.set('tutors',[]);
-});
 dataRecord = server.record.getRecord('data')
 dataRecord.set('users',[]);
-//HARD CODED CATAGORIES FOR NOW HERE
-dataRecord.set('catagories',[
+dataRecord.set('tutors',[]);
+//HARD CODED CATEGORIES FOR NOW HERE
+dataRecord.set('categories',[
   'English',
   'Math',
   'Chemistry',
@@ -236,15 +194,9 @@ server.rpc.provide('requestMeeting', (data, response) => {
             pendingMeetings.push(client);
             clientRequestMeetings.push(contact);
             record.set('pendingMeetings', pendingMeetings, () => {
-              record.set('requestMeetings', requestMeetings, () => {
-                server.event.emit("profile/"+contact+"/update");
-              });
+              record.set('requestMeetings', requestMeetings);
             });
-            clientRecord.set('pendingMeetings', clientPendingMeetings, () => {
-              clientRecord.set('requestMeetings', clientRequestMeetings, () => {
-                server.event.emit("profile/"+client+"/update");
-              });
-            });
+            clientRecord.set('pendingMeetings', clientPendingMeetings);
           }
         });
       });
@@ -252,17 +204,32 @@ server.rpc.provide('requestMeeting', (data, response) => {
   });
 });
 
-server.rpc.provide('tutor', (data, response) => {
-  var username = data.username;
-  var password = data.password;
-  var record = tutorRecord;
-  record.whenReady(() => {
-    var tutors = record.get('tutors')
-    if (users[username] === password && tutors.indexOf(username)==-1) {
-      tutors.push(username);
-      record.set('tutors', tutors);
+server.rpc.provide('registerTutor', (data, response) => {
+  if (authenticate(data.auth)) {
+    var username = data.auth.username;
+    var password = data.auth.password;
+    var users = dataRecord.get('users');
+    var index;
+    for (var i = 0;i < users.length; i++) {
+      if (users[i].username === username) {
+        index = i;
+        break
+      }
     }
-  });
+    users = dataRecord.get('users');
+    var user = users[index];
+    //make user tutor
+    if (!user.tutor) {
+      user.tutor = true;
+      //change this
+      user.categories = ['Math', 'English']
+      users[index] = user;
+      dataRecord.set('users', users);
+      var tutors = dataRecord.get('tutors');
+      tutors.push(user);
+      dataRecord.set('tutors', tutors);
+    }
+  }
 });
 
 //Get user's messages
@@ -289,6 +256,16 @@ var options = {
   cert: fs.readFileSync('cert.pem'),
   strictSSL: false
 }
+
+function authenticate(auth) {
+  console.log(auth);
+  console.log(users);
+  if (auth && auth.username && auth.password && users[auth.username] === auth.password) {
+    return true;
+  }
+  return false;
+}
+
 
 /*var users = {};
 var inactiveUsers = [];
