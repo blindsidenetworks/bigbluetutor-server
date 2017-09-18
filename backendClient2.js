@@ -24,7 +24,13 @@ messages.set({messages: ["Hi", "Hello", "Hey", "What's goin' on?"]}, () =>
   */
 });
 
+var n1 = client.record.getRecord("test/n1");
+n1.set({n: 24, x: 9});
+var n2 = client.record.getRecord("test/n2");
+n2.set({n: 25});
+var n3 = client.record.getRecord("test/n3");
+n3.set({n: 45});
 
-var str = JSON.stringify({table: "table", query: [["n", "lt", 45]]});
+var str = JSON.stringify({table: "test", query: [["n", "lt", 45]]});
 
 client.record.getList("search?" + str).whenReady(list => {console.log(list.getEntries())});
