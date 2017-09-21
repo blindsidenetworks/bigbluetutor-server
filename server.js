@@ -5,7 +5,13 @@ const app = express();
 const bodyParser = require('body-parser');
 const deepstream = require('deepstream.io-client-js');
 
+var rethinksearch = require('deepstream.io-provider-search-rethinkdb');
+
+var searchProvider = new rethinksearch({logLevel: 3, deepstreamUrl: "localhost:6020", deepstreamCredentials: {username: 'dsp', password:'dp'}, rethinkdbConnectionParams: {host: "localhost", port: 28015, db: "deepstream"}});
+searchProvider.start();
+
 const server = deepstream('tutor-back.blindside-dev.com:6020');
+
 
 var createMeeting = require('./meeting.js');
 
@@ -41,9 +47,8 @@ app.use(function(req, res) {
       ratings: {},
       tutor: false
     }
-    var userList = dataRecord.get('users')
-    userList.push(user)
-    dataRecord.set('users',userList)
+    var userRecord = server.record.getRecord('user/'+user.username);
+    userRecord.set(user);
     res.json({
         userId: username,
         clientData: { data: 'client' },
@@ -67,7 +72,6 @@ server.login({
 });
 
 dataRecord = server.record.getRecord('data')
-dataRecord.set('users',[]);
 dataRecord.set('tutors',[]);
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
@@ -82,7 +86,6 @@ dataRecord.set('categories',{
 });
 
 server.rpc.provide('sendMessage', (data, response) => {
-   console.log(data);
   var contact = data.contact;
   var client = data.client;
   var message = data.message;
@@ -94,13 +97,13 @@ server.rpc.provide('sendMessage', (data, response) => {
         clientRecord.whenReady(() => {
           var messages = record.get('messages');
           if (!messages){
-            messages = {client:[{user:client,message:message}]}
+            messages = {client:[{user:client,message:message, special: false}]}
           }else if(messages[client]) {
-            messages[client].push({user:client,message:message})
+            messages[client].push({user:client,message:message, special: false})
           }else {
-            messages[client] = [{user:client,message:message}]
+            messages[client] = [{user:client,message:message, special: false}]
           }
-          record.set('messages',messages)
+          record.set('messages',messages);
         });
      });
     }
@@ -111,6 +114,7 @@ server.rpc.provide('requestMeeting', (data, response) => {
   console.log("meeting request");
   var contact = data.contact;
   var client = data.client;
+  var data = data.data;
   if (client === contact) { return }
   server.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -126,8 +130,8 @@ server.rpc.provide('requestMeeting', (data, response) => {
           var clientMessages = clientRecord.get('messages');
 
           if (clientPendingMeetings.indexOf(contact) != -1) {
-            messages[client].push({user: client, message: client+" accepted your meeting request"});
-            clientMessages[contact].push({user: client, message: "You accepted the meeting request"});
+            messages[client].push({user: client, message: client+" accepted your meeting request", special: true});
+            clientMessages[contact].push({user: client, message: "You accepted the meeting request", special:true});
             record.set('messages',messages);
             clientRecord.set('messages',clientMessages);
 
@@ -147,8 +151,8 @@ server.rpc.provide('requestMeeting', (data, response) => {
             if (!clientMessages[contact]) {
               clientMessages[contact] = [];
             }
-            messages[client].push({user: client, message: client+" is requesting a meeting"});
-            clientMessages[contact].push({user: client, message: "You requested a meeting"});
+            messages[client].push({user: client, message: client+" is requesting a meeting", special: true, data: data});
+            clientMessages[contact].push({user: client, message: "You requested a meeting", special: true, data: data});
             record.set('messages',messages);
             clientRecord.set('messages',clientMessages);
             pendingMeetings.push(client);
@@ -167,25 +171,16 @@ server.rpc.provide('registerTutor', (data, response) => {
   if (authenticate(data.auth)) {
     var username = data.auth.username;
     var password = data.auth.password;
-    var users = dataRecord.get('users');
-    var index;
-    for (var i = 0;i < users.length; i++) {
-      if (users[i].username === username) {
-        index = i;
-        break
-      }
-    }
-    users = dataRecord.get('users');
-    var user = users[index];
+    var userRecord = server.record.getRecord('user/'+username);
+    var user = userRecord.get();
     //make user tutor
     if (!user.tutor) {
       user.tutor = true;
       user.categories = data.categories;
-      users[index] = user;
-      dataRecord.set('users', users);
       var tutors = dataRecord.get('tutors');
       tutors.push(user);
       dataRecord.set('tutors', tutors);
+      userRecord.set(user);
     }
   }
 });
