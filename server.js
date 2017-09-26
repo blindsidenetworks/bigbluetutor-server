@@ -7,9 +7,6 @@ const deepstream = require('deepstream.io-client-js');
 
 var rethinksearch = require('deepstream.io-provider-search-rethinkdb');
 
-var searchProvider = new rethinksearch({logLevel: 3, deepstreamUrl: "localhost:6020", deepstreamCredentials: {username: 'dsp', password:'dp'}, rethinkdbConnectionParams: {host: "localhost", port: 28015, db: "deepstream"}});
-searchProvider.start();
-
 const server = deepstream('tutor-back.blindside-dev.com:6020');
 
 
@@ -28,6 +25,22 @@ app.use(function(req, res) {
   var role = "client"
   //hack fix
   if (username === "server" && password === "sp") {
+    users[username] = "sp"
+    var user = {
+      username:username,
+      position: 'no position',
+      description: '',
+      ratings: {},
+      tutor: false
+    }
+    var userRecord = server.record.getRecord('user/'+user.username);
+    userRecord.set(user);
+    res.json({
+      userId: username,
+      clientData: { data: 'server' },
+      serverData: { id: username, role: 'server' }
+    })
+  }else if(username==="provider"){
     users[username] = "sp"
     res.json({
       userId: username,
@@ -173,9 +186,26 @@ server.rpc.provide('registerTutor', (data, response) => {
     var password = data.auth.password;
     var userRecord = server.record.getRecord('user/'+username);
     var user = userRecord.get();
+
+    //check for broader subjects
+    var subjects = [];
+    var categoryList = dataRecord.get('categories');
+    var categories = data.categories;
+    for(var category in categoryList) {
+      if (subjects.indexOf(category) == -1) {
+        for (subcategory in categoryList[category]) {
+          if(categories.indexOf(categoryList[category][subcategory]) != -1) {
+            subjects.push(category);
+            break;
+          }
+        }
+      }
+    }
+
     //make user tutor
     if (!user.tutor) {
       user.tutor = true;
+      user.subjects = subjects;
       user.categories = data.categories;
       var tutors = dataRecord.get('tutors');
       tutors.push(user);
