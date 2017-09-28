@@ -26,15 +26,6 @@ app.use(function(req, res) {
   //hack fix
   if (username === "server" && password === "sp") {
     users[username] = "sp"
-    var user = {
-      username:username,
-      position: 'no position',
-      description: '',
-      ratings: {},
-      tutor: false
-    }
-    var userRecord = server.record.getRecord('user/'+user.username);
-    userRecord.set(user);
     res.json({
       userId: username,
       clientData: { data: 'server' },
@@ -143,13 +134,39 @@ server.rpc.provide('requestMeeting', (data, response) => {
           var clientMessages = clientRecord.get('messages');
 
           if (clientPendingMeetings.indexOf(contact) != -1) {
-            messages[client].push({user: client, message: client+" accepted your meeting request", special: true});
-            clientMessages[contact].push({user: client, message: "You accepted the meeting request", special:true});
-            record.set('messages',messages);
-            clientRecord.set('messages',clientMessages);
+
+            var i = messages[client].some(function(item, index) {
+              if(item.active) {
+                return index;
+              } 
+            });
+
+            if (i!=-1) {
+              messages[client].splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
+              record.set('messages', messages);
+            }
+            
+            i = clientMessages[contact].some(function(item, index) {
+              if(item.active) {
+                return index;
+              }
+            });
+
+            if (i!=-1) {
+              clientMessages[contact].splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
+              clientRecord.set('messages', clientMessages);
+            }
+
+            //messages[client].push({user: client, message: "session in progress", special: "ActiveSession", active: true});
+            //clientMessages[contact].push({user: client, message: "session in progress", special: "ActiveSession", active: true});
+            //record.set('messages',messages);
+            //clientRecord.set('messages',clientMessages);
 
             clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
             requestMeetings.splice(requestMeetings.indexOf(client), 1);
+            record.set('pendingMeetings', pendingMeetings);
+            clientRecord.set('pendingMeetings', clientPendingMeetings);
+
             //create meeting here
             createMeeting(contact + '/' + client, contact, function(meetingUrl) {
               record.set('meeting', meetingUrl);
@@ -164,16 +181,73 @@ server.rpc.provide('requestMeeting', (data, response) => {
             if (!clientMessages[contact]) {
               clientMessages[contact] = [];
             }
-            messages[client].push({user: client, message: client+" is requesting a meeting", special: true, data: data});
-            clientMessages[contact].push({user: client, message: "You requested a meeting", special: true, data: data});
+
+            if (!messages[client]) {
+              messages[client] = [];
+            }
+            if (!clientMessages[contact]) {
+              clientMessages[contact] = [];
+            }
+
+            messages[client].push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: data});
+            clientMessages[contact].push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: data});
             record.set('messages',messages);
             clientRecord.set('messages',clientMessages);
             pendingMeetings.push(client);
             clientRequestMeetings.push(contact);
-            record.set('pendingMeetings', pendingMeetings, () => {
-            });
+            record.set('pendingMeetings', pendingMeetings);
             clientRecord.set('pendingMeetings', clientPendingMeetings);
           }
+        });
+      });
+    }
+  });
+});
+
+server.rpc.provide('declineMeeting', (data, response) => {
+  var contact = data.contact;
+  var client = data.client;
+  var data = data.data;
+  if (client === contact) { return }
+  server.record.has("profile/"+contact, (err, has) => {
+    if (has) {
+      var record = server.record.getRecord("profile/"+contact);
+      var clientRecord = server.record.getRecord("profile/"+client);
+      record.whenReady(() => {
+        clientRecord.whenReady(() => {
+          var pendingMeetings = record.get('pendingMeetings');
+          var clientPendingMeetings = clientRecord.get('pendingMeetings');
+          var requestMeetings = record.get('requestMeetings');
+          var clientRequestMeetings = clientRecord.get('requestMeetings');
+          var messages = record.get('messages');
+          var clientMessages = clientRecord.get('messages');
+
+          var i = messages[client].some(function(item, index) {
+              if(item.active) {
+                return index;
+              }
+            });
+
+          if (i!=-1) {
+            messages[client].splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
+            record.set('messages', messages);
+          }
+
+          i = clientMessages[contact].some(function(item, index) {
+              if(item.active) {
+                return index;
+              }
+            });
+
+          if (i!=-1) {
+            clientMessages[contact].splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
+            clientRecord.set('messages', clientMessages);
+          }
+
+          clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
+          requestMeetings.splice(requestMeetings.indexOf(client), 1);
+          record.set('pendingMeetings', pendingMeetings);
+          clientRecord.set('pendingMeetings', clientPendingMeetings);
         });
       });
     }
