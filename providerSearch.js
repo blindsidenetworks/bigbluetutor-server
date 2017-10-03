@@ -43,7 +43,6 @@ provider.rpc.provide('search/tutor', function (data, response ) {
 });
 
 function subscribe(category, callback) {
-//  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
 
   .changes()
@@ -80,3 +79,33 @@ function query(category, callback) {
   });
 }
 
+provider.rpc.provide('search', function (data, response) {
+  search(data.param, function(result) {
+    response.send({data: result});
+  })
+});
+
+function search(params, callback) {
+  r.db('deepstream').table('user')
+  .filter(
+    function(tutor) {
+      return tutor('categories').contains(function(subject) {
+        return subject.match(params)
+      })
+      .or(tutor('subjects').contains(function(subject) {
+        return subject.match(params)
+      }))
+      .or(tutor('username').match(params));
+    })
+  .orderBy(function(tutor) {
+      return tutor('username').split("").count()
+    })
+  .run(connection, (err, cursor) => {
+    if (err) throw err
+    cursor.toArray(function(err, result) {
+      var tutors = [];
+      callback(result);
+    })
+  });
+  
+}
