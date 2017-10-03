@@ -6,5 +6,8 @@ client.login({
   password: 'b'
 });
 
-client.event.emit('addContact');
-client.event.emit('createMeeting');
+client.rpc.make('search', {param:'i'}, (err, data) => {
+  for (var user in data) {
+    console.log(data[user]);
+  }
+});

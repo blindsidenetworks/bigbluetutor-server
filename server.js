@@ -135,9 +135,11 @@ server.rpc.provide('requestMeeting', (data, response) => {
 
           if (clientPendingMeetings.indexOf(contact) != -1) {
 
-            var i = messages[client].some(function(item, index) {
+            var i = -1;
+            messages[client].some(function(item, index) {
               if(item.active) {
-                return index;
+                i = index;
+                return true;
               } 
             });
 
@@ -146,9 +148,11 @@ server.rpc.provide('requestMeeting', (data, response) => {
               record.set('messages', messages);
             }
             
-            i = clientMessages[contact].some(function(item, index) {
+            i = -1;
+            clientMessages[contact].some(function(item, index) {
               if(item.active) {
-                return index;
+                i = index;
+                return true;
               }
             });
 
@@ -222,9 +226,11 @@ server.rpc.provide('declineMeeting', (data, response) => {
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
 
-          var i = messages[client].some(function(item, index) {
+          var i = -1;
+          messages[client].some(function(item, index) {
               if(item.active) {
-                return index;
+                i = index;
+                return true;
               }
             });
 
@@ -233,9 +239,11 @@ server.rpc.provide('declineMeeting', (data, response) => {
             record.set('messages', messages);
           }
 
-          i = clientMessages[contact].some(function(item, index) {
+          i = -1;
+          clientMessages[contact].some(function(item, index) {
               if(item.active) {
-                return index;
+                i = index;
+                return true;
               }
             });
 
