@@ -76,7 +76,7 @@ server.login({
 });
 
 dataRecord = server.record.getRecord('data')
-dataRecord.set('tutors',[]);
+//dataRecord.set('tutors',[]);
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
   'Language':['English','French','Spanish','German','Mandarin','Japanese','Arabic','Russian'],
@@ -84,9 +84,9 @@ dataRecord.set('categories',{
   'Business':['Accounting','Business Law', 'Business Management', 'Economics', 'Entrepreneurship', 'Finance', 'Marketing', 'Tax'],
   'Science':['Astronomy', 'Biology', 'Chemistry', 'Physics'],
   'Social Sciences':['Anthropology', 'Geography', 'History'],
-  'Arts':['Abstract Art', 'Art History', 'Visual Arts'],
-  'Technology':['Artificial Intelligence', 'C', 'C++', 'Human-Computer Interaction', 'Java', 'Javascript', 'Ruby', 'Swift', 'Web Development'],
-  'Miscellaneous':['Auctioneering', 'Bagpiping', 'Canadian Studies', 'Mortuary Science', 'Popular Music', 'Recreation and Leisure Studies', 'Viticulture and Enology']
+  'Arts':['Abstract Art', 'Art History', 'Visual Arts']
+//  'Technology':['Artificial Intelligence', 'C', 'C++', 'Human-Computer Interaction', 'Java', 'Javascript', 'Ruby', 'Swift', 'Web Development'],
+//  'Miscellaneous':['Auctioneering', 'Bagpiping', 'Canadian Studies', 'Mortuary Science', 'Popular Music', 'Recreation and Leisure Studies', 'Viticulture and Enology']
 });
 
 server.rpc.provide('sendMessage', (data, response) => {
@@ -262,6 +262,18 @@ server.rpc.provide('declineMeeting', (data, response) => {
   });
 });
 
+server.rpc.provide('changeDescription', (data, response) => {
+  if(authenticate(data.auth)) {
+    var username = data.auth.username;
+    var password = data.auth.password;
+    var userRecord = server.record.getRecord('user/'+username);
+    var user = userRecord.get();
+
+    user.description = data.description;
+    userRecord.set(user)
+  }
+})
+
 server.rpc.provide('registerTutor', (data, response) => {
   if (authenticate(data.auth)) {
     var username = data.auth.username;
@@ -289,9 +301,9 @@ server.rpc.provide('registerTutor', (data, response) => {
       user.tutor = true;
       user.subjects = subjects;
       user.categories = data.categories;
-      var tutors = dataRecord.get('tutors');
-      tutors.push(user);
-      dataRecord.set('tutors', tutors);
+      //var tutors = dataRecord.get('tutors');
+      //tutors.push(user);
+      //dataRecord.set('tutors', tutors);
       userRecord.set(user);
     }
   }
