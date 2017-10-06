@@ -16,4 +16,7 @@ event:
 rpc:
   "*":
     provide: true
+    request: "user.isAuthenticated"
+  "getMessages":
+    provide: true
     request: true

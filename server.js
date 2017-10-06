@@ -1,9 +1,10 @@
 var deepstream = require("deepstream.io");
 var rethinkdb = require("deepstream.io-storage-rethinkdb");
+var deepstreamClient = require("deepstream.io-client-js");
 const bodyParser = require('body-parser');
 var googleAuth = require("google-auth-library");
 
-var server = new deepstream("conf/config.yml");
+const server = new deepstream("conf/config.yml");
 
 //Google auth setup
 var googleClientID = "591220975174-hqfbvf7iuegj6nf1h6jkldeuh3ia72v7.apps.googleusercontent.com";
@@ -20,32 +21,39 @@ server.set("authenticationHandler",
     {
       client.verifyIdToken(authData.idToken, googleClientID, (error, login) =>
       {
-        if(error || !login)
+        if(error)
         {
           console.log(error);
-          callback("Access denied");
+          callback(null, "Access denied");
+        }
+        else if(!login)
+        {
+          callback(null, "Access denied");
         }
         else
         {
           var payload = login.getPayload();
-          callback(true, payload.sub);
+          var client = deepstreamClient('localhost:6020').login({
+            username: 'server',
+            password: 'sp'
+          }, function(success, data)
+          {
+            if(!success)
+              return;
+            var query = JSON.stringify({table: "profile", query: [["googleID", "match", payload.sub]]});
+            client.record.getList("search?" + query).whenReady(list =>
+            {
+              console.log(list.getEntries());
+              callback(true, {username: payload.sub, serverData:{idToken: authData.idToken, role: "user"}});
+            });
+          });
         }
       });
     }
-    else if(authData && authData.username === "rethinkdb")
-    {
-      callback(true, "RethinkDB");
-    }
-    else if(authData && authData.username === "server")
-    {
-      callback(true, "server");
-    }
-    /*
     else if(connectionData.remoteAddress === "127.0.0.1")
     {
-      callback(true, "server");
+      callback(true, {username: "SERVER", serverData:{role: "server"}});
     }
-    */
     else
     {
       callback("Access denied");
