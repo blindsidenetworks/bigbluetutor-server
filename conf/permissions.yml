@@ -4,10 +4,15 @@ presence:
 record:
   "*":
     create: true
-    write: true
+    write: "user.data.role === 'server'"
     read: true
-    delete: true
+    delete: "user.data.role === 'server'"
     listen: true
+  "profile/$userid":
+    create: "user.id == $userid || user.data.role === 'server'"
+    write: "user.id == $userid || user.data.role === 'server'"
+    read: "user.id == $userid || user.data.role === 'server'"
+    listen: "user.id == $userid"
 event:
   "*":
     publish: true
@@ -16,7 +21,10 @@ event:
 rpc:
   "*":
     provide: true
-    request: "user.isAuthenticated"
-  "getMessages":
-    provide: true
     request: true
+  "createUser":
+    provide: "user.data.role === 'server'"
+    request: "user.data.role === 'server'"
+  "registerTutor":
+    provide: "user.data.role === 'server'"
+    request: "user.id === data.username"

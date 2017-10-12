@@ -3,14 +3,17 @@ var rethinkdb = require("deepstream.io-storage-rethinkdb");
 var deepstreamClient = require("deepstream.io-client-js");
 const bodyParser = require('body-parser');
 var googleAuth = require("google-auth-library");
+var r = require("rethinkdb");
 
 const server = new deepstream("conf/config.yml");
+var connection = null;
 
 //Google auth setup
 var googleClientID = "591220975174-hqfbvf7iuegj6nf1h6jkldeuh3ia72v7.apps.googleusercontent.com";
 
 var auth = new googleAuth();
 var client = new auth.OAuth2(googleClientID, "", "");
+var dsClient;
 
 //Deepstream setup
 server.set("authenticationHandler",
@@ -24,39 +27,86 @@ server.set("authenticationHandler",
         if(error)
         {
           console.log(error);
-          callback(null, "Access denied");
+          callback(null, {username: "Access denied", clientData: {googleError: true}});
+          return;
         }
-        else if(!login)
+        if(!login)
         {
-          callback(null, "Access denied");
+          console.log("Error: can't get payload from idToken");
+          callback(null, {username: "Access denied", clientData: {googleError: true}});
+          return;
         }
-        else
+        var payload = login.getPayload();
+        //Check if a user with a matching Google ID exists in the database
+        r.db("deepstream").table("auth").filter(r.row("googleID").eq(payload.sub)).run(connection, (error, cursor) =>
         {
-          var payload = login.getPayload();
-          var client = deepstreamClient('localhost:6020').login({
-            username: 'server',
-            password: 'sp'
-          }, function(success, data)
+          if(error)
           {
-            if(!success)
-              return;
-            var query = JSON.stringify({table: "profile", query: [["googleID", "match", payload.sub]]});
-            client.record.getList("search?" + query).whenReady(list =>
+            console.log(error);
+            callback(null, {username: "Access denied"});
+            return;
+          }
+          cursor.toArray(function(error, profiles)
+          {
+            if(error)
             {
-              console.log(list.getEntries());
-              callback(true, {username: payload.sub, serverData:{idToken: authData.idToken, role: "user"}});
-            });
+              console.log(error);
+              callback(null, {username: "Access denied"});
+              return;
+            }
+            console.log(profiles);
+            if(profiles.length === 1 && profiles[0].username)
+            {
+              //Found user, so log the user in with their username
+              callback(true, {username: profiles[0].username, serverData:{idToken: authData.idToken, role: "user"}, clientData: {username: profiles[0].username}});
+            }
+            else if(profiles.length > 1)
+            {
+              //There should be at most one user with the given Google ID
+              console.log("Error: more than one user with given Google ID");
+              callback(null, {username: "Access denied"});
+            }
+            else if("username" in authData && authData.username !== undefined && authData.username !== null)
+            {
+              //No user found, so user needs to set a username to create an account
+              //If a username was requested, attempt to create the account. Otherwise, do not log in
+              console.log("Creating user with username", authData.username);
+              dsClient.rpc.make("createUser", {googleID: payload.sub, username: authData.username}, (error, result) =>
+              {
+                if(error)
+                {
+                  console.log(error);
+                  callback(null, {username: "Access denied", clientData: result});
+                }
+                else if(result.username)
+                {
+                  //User creation succeeded
+                  callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
+                }
+                else
+                {
+                  //No username was returned, so creating the user failed
+                  callback(null, {username: "Access denied", clientData: result});
+                }
+              });
+            }
+            else
+            {
+              console.log("Error: no user with matching Google ID exists and no username was given");
+              callback(null, {username: "Access denied", clientData: {needsUsername: true}});
+            }
           });
-        }
+        });
+
       });
     }
-    else if(connectionData.remoteAddress === "127.0.0.1")
+    else if(connectionData.remoteAddress === "127.0.0.1" && authData.password === "sp")
     {
       callback(true, {username: "SERVER", serverData:{role: "server"}});
     }
     else
     {
-      callback("Access denied");
+      callback({username: "Access denied"});
     }
   },
   canPerformAction: function(id, message, callback)
@@ -67,5 +117,18 @@ server.set("authenticationHandler",
 });
 
 server.set("storage", new rethinkdb({port: 28015, host: "localhost", database: "deepstream", defaultTable: "deepstream_records", splitChar: "/"}));
+r.connect({host: "localhost", port: "28015"}, function(error, conn)
+{
+  if(error) throw error;
+  connection = conn;
+});
+
+server.on("started", () =>
+{
+  dsClient = deepstreamClient('localhost:6020').login({
+    username: 'server',
+    password: 'sp'
+  });
+});
 
 server.start();

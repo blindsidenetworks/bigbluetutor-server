@@ -1,8 +1,7 @@
 const deepstream = require('deepstream.io-client-js');
-var rethinkSearch = require('deepstream.io-provider-search-rethinkdb');
+// var rethinkSearch = require('deepstream.io-provider-search-rethinkdb');
 
 //Deepstream setup
-//const client = deepstream('tutor-back.blindside-dev.com:6020');
 const deepstreamClient = deepstream('localhost:6020').login({
   username: 'server',
   password: 'sp'
@@ -12,8 +11,8 @@ const deepstreamClient = deepstream('localhost:6020').login({
   console.log("Data:", data);
 });
 
-var searchProvider = new rethinkSearch({logLevel: 3, deepstreamUrl: "localhost:6020", deepstreamCredentials: {username: 'rethinkdb'}, rethinkdbConnectionParams: {host: "localhost", port: 28015, db: "deepstream"}});
-searchProvider.start();
+// var searchProvider = new rethinkSearch({logLevel: 3, deepstreamUrl: "localhost:6020", deepstreamCredentials: {username: 'rethinkdb'}, rethinkdbConnectionParams: {host: "localhost", port: 28015, db: "deepstream"}});
+// searchProvider.start();
 
 var createMeeting = require('./meeting.js');
 
@@ -78,7 +77,6 @@ var options = {
   strictSSL: false
 }
 
-/*
 function authenticate(auth) {
   console.log(auth);
   console.log(users);
@@ -87,7 +85,6 @@ function authenticate(auth) {
   }
   return false;
 }
-*/
 
 dataRecord = deepstreamClient.record.getRecord('data')
 dataRecord.set('tutors',[]);
@@ -256,7 +253,6 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
 });
 
 deepstreamClient.rpc.provide('registerTutor', (data, response) => {
-  // if (authenticate(data.auth)) {
   console.log("registerTutor");
     var username = data.username;
     var userRecord = deepstreamClient.record.getRecord('user/'+username);
@@ -340,71 +336,66 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
   if(!data || !data.googleID || data.googleID === "")
   {
     console.log("Not enough data provided to create user");
-    response.send({success: false});
+    response.send({username: undefined});
     return;
   }
   if(!data.username || data.username === "")
   {
     console.log("Invalid username");
-    response.send({success: false, error: "Please enter a username"});
+    response.send({username: undefined, error: "Please enter a username"});
     return;
   }
 
   var googleID = data.googleID;
   var username = data.username.toLowerCase();
 
-  //Do not create a new user if one with a matching Google ID already exists
-  deepstreamClient.record.has("googleID/" + googleID, (error, hasRecord) =>
+  //Do not create a new user if a profile record with the given username already exists
+  deepstreamClient.record.has("profile/" + username, (error, hasRecord) =>
   {
     if(error)
     {
       console.log(error);
-      response.send({success: false});
+      response.send({username: undefined, error: "An error occurred. Please try again"});
       return;
     }
-
     if(hasRecord)
     {
-      //Profile with Google ID already exists, so do nothing
-      console.log("Google ID", googleID, "already exists");
-      response.send({success: false});
+      //Profile with given username already exists, so do nothing
+      console.log("Profile with username", username, "already exists");
+      response.send({username: undefined, error: "This username is already in use"});
       return;
     }
 
-    //Do not create a new user if a profile with the given username already exists
-    deepstreamClient.record.has("profile/" + username, (error, hasRecord) =>
+    //Do not create a new user if a user record with the given username already exists
+    deepstreamClient.record.has("user/" + username, (error, hasRecord) =>
     {
       if(error)
       {
         console.log(error);
-        response.send({success: false});
+        response.send({username: undefined, error: "An error occurred. Please try again"});
         return;
       }
-
       if(hasRecord)
       {
-        //Profile with given username already exists, so do nothing
-        console.log("Profile with username", username, "already exists");
-        response.send({success: false, error: "This username is already in use"});
+        //User with given username already exists, so do nothing
+        console.log("User with username", username, "already exists");
+        response.send({username: undefined, error: "This username is already in use"});
         return;
       }
 
-      //Do not create a new user if a user with the given username already exists
-      deepstreamClient.record.has("user/" + username, (error, hasRecord) =>
+      deepstreamClient.record.has("auth/" + username, (error, hasRecord) =>
       {
         if(error)
         {
-          console.log(error);
-          response.send({success: false});
-          return;
+            console.log(error);
+            response.send({username: undefined, error: "An error occurred. Please try again"});
+            return;
         }
-
         if(hasRecord)
         {
-          //User with given username already exists, so do nothing
-          console.log("User with username", username, "already exists");
-          response.send({success: false, error: "This username is already in use"});
-          return;
+            console.log("Auth record with username", username, "already exists");
+            response.send({username: undefined, error: "An error occurred. Please try again"});
+            return;
         }
 
         deepstreamClient.record.getRecord("profile/" + username).whenReady(profileRecord =>
@@ -414,83 +405,88 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
           if(!profile)
           {
             console.log("Error getting the profile record");
-            response.send({success: false});
+            response.send({username: undefined, error: "An error occurred. Please try again"});
+            return;
+          }
+          //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's profile information
+          if(profile.username)
+          {
+            console.log("Error: profile record with matching username already exists");
+            response.send({username: undefined, error: "This username is already in use"});
             return;
           }
 
-          //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's profile information
-          if(!profile.username && !profile.googleID)
+          profile =
           {
-            profile =
+            username: username,
+            onboardingComplete: false,
+            stars: [],
+            pendingMeetings: [],
+            requestMeetings: [],
+            messages: {},
+            profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
+            meeting: ""
+          };
+          profileRecord.set(profile);
+
+          deepstreamClient.record.getRecord("user/" + username).whenReady(userRecord =>
+          {
+            var user = userRecord.get();
+
+            if(!user)
             {
-              googleID: googleID,
+              console.log("Error getting the profile record");
+              response.send({username: undefined, error: "An error occurred. Please try again"});
+              return;
+            }
+            //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
+            if(user.username)
+            {
+              console.log("Error: user record with matching username already exists");
+              response.send({username: undefined, error: "This username is already in use"});
+              return;
+            }
+
+            user =
+            {
               username: username,
-              onboardingComplete: false,
-              stars: [],
-              pendingMeetings: [],
-              requestMeetings: [],
-              messages: {},
-              profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
-              meeting: ""
+              position: 'no position',
+              description: '',
+              ratings: {},
+              tutor: false,
             };
-            profileRecord.set(profile);
+            userRecord.set(user);
 
-            deepstreamClient.record.getRecord("user/" + username).whenReady(userRecord =>
+            deepstreamClient.record.getRecord("auth/" + username).whenReady(authRecord =>
             {
-              var user = userRecord.get();
+              var auth = authRecord.get();
 
-              if(!user)
+              if(!auth)
               {
-                console.log("Error getting the profile record");
-                response.send({success: false});
+                console.log("Error getting the auth record");
+                response.send({username: undefined, error: "An error occurred. Please try again"});
+                return;
+              }
+              //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
+              if(auth.username)
+              {
+                console.log("Error: auth record with matching username already exists");
+                response.send({username: undefined, error: "This username is already in use"});
                 return;
               }
 
-              //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
-              if(!user.username)
+              auth =
               {
-                user =
-                {
-                  username: username,
-                  position: 'no position',
-                  description: '',
-                  ratings: {},
-                  tutor: false,
-                };
-                userRecord.set(user);
+                username: username,
+                googleID: googleID
+              };
+              authRecord.set(auth);
 
-                //Create a record to link the user's Google ID with their username
-                deepstreamClient.record.getRecord("googleID/" + googleID).whenReady(googleRecord =>
-                {
-                  var google = googleRecord.get();
-
-                  if(!google)
-                  {
-                    console.log("Error getting the Google ID record");
-                    response.send({success: false});
-                    return;
-                  }
-
-                  if(!google.username && !google.googleID)
-                  {
-                    google = {username: username, googleID: googleID};
-                    googleRecord.set(google);
-                  }
-                  response.send({success: true});
-                });
-              }
-              else
-              {
-                response.send(false);
-              }
-            });
-          }
-          else
-          {
-            response.send(false);
-          }
-        });
-      });
-    });
-  });
+              response.send({username: username});
+            }); //Get auth
+          }); //Get user
+        }); //Get profile
+      }); //Has auth
+    }); //Has user
+  }); //Has profile
 });

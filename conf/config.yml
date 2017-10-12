@@ -2,7 +2,7 @@
 # Show the deepstream logo on startup (highly recommended)
 showLogo: true
 # Log messages with this level and above. Valid levels are DEBUG, INFO, WARN, ERROR, OFF
-logLevel: INFO
+logLevel: DEBUG
 # Directory where all plugins reside
 #libDir: ../lib
 
@@ -38,7 +38,7 @@ connectionEndpoints:
         # amount of time a connection can remain open while not being logged in
         unauthenticatedClientTimeout: 180000
         # invalid login attempts before the connection is cut
-        maxAuthAttempts: 3
+        maxAuthAttempts: 10
         # if true, the logs will contain the cleartext username / password of invalid login attempts
         logInvalidAuthData: false
         # maximum allowed size of an individual message in bytes
