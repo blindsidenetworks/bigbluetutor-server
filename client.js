@@ -104,6 +104,15 @@ deepstreamClient.event.listen('createMeeting/.*/.*', function(match, isSubscribe
   console.log('meeting create');
 });
 
+deepstreamClient.rpc.provide('changeDescription', (data, response) => {
+  var username = data.username;
+  var userRecord = deepstreamClient.record.getRecord('user/'+username);
+  var user = userRecord.get();
+
+  user.description = data.description;
+  userRecord.set(user)
+});
+
 deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
   console.log("meeting request");
   var contact = data.contact;
@@ -283,7 +292,6 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       dataRecord.set('tutors', tutors);
       userRecord.set(user);
     }
-  // }
 });
 
 deepstreamClient.rpc.provide('sendMessage', (data, response) => {

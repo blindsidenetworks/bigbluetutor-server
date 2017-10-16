@@ -1,7 +1,6 @@
 var deepstream = require("deepstream.io");
 var rethinkdb = require("deepstream.io-storage-rethinkdb");
 var deepstreamClient = require("deepstream.io-client-js");
-const bodyParser = require('body-parser');
 var googleAuth = require("google-auth-library");
 var r = require("rethinkdb");
 
