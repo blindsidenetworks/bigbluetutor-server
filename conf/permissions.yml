@@ -1,0 +1,30 @@
+presence:
+  "*":
+    allow: true
+record:
+  "*":
+    create: true
+    write: "user.data.role === 'server'"
+    read: true
+    delete: "user.data.role === 'server'"
+    listen: true
+  "profile/$userid":
+    create: "user.id == $userid || user.data.role === 'server'"
+    write: "user.id == $userid || user.data.role === 'server'"
+    read: "user.id == $userid || user.data.role === 'server'"
+    listen: "user.id == $userid"
+event:
+  "*":
+    publish: true
+    subscribe: true
+    listen: true
+rpc:
+  "*":
+    provide: true
+    request: true
+  "createUser":
+    provide: "user.data.role === 'server'"
+    request: "user.data.role === 'server'"
+  "registerTutor":
+    provide: "user.data.role === 'server'"
+    request: "user.id === data.username"

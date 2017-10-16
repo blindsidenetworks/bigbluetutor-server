@@ -1,6 +1,6 @@
 r = require('rethinkdb');
 const deepstream = require('deepstream.io-client-js');
-const provider = deepstream('tutor-back.blindside-dev.com:6020');
+const provider = deepstream('localhost:6020');
 
 var activeSessions = {};
 
@@ -34,7 +34,7 @@ provider.event.listen('search/.*', function(subject, isSubscribed, response) {
       provider.event.emit(subject, {subject: subject, data: tutors});
     });
   }else {
- 
+
  }
 });
 */
@@ -185,5 +185,5 @@ function search(params, callback) {
       callback(result);
     })
   });
-  
+
 }
