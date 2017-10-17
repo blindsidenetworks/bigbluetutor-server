@@ -48,7 +48,7 @@ connectionEndpoints:
     name: http
     options:
       # port for the http server
-      port: 8080
+      port: 8008
       # host for the http server
       host: 0.0.0.0
       # allow 'authData' parameter in POST requests, if disabled only token and OPEN auth is
