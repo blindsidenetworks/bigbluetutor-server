@@ -2,7 +2,12 @@ const deepstream = require('deepstream.io-client-js');
 // var rethinkSearch = require('deepstream.io-provider-search-rethinkdb');
 
 //Deepstream setup
-const deepstreamClient = deepstream('localhost:6020').login({
+const deepstreamClient = deepstream('localhost:6020').on("error", error =>
+{
+  console.log(error);
+});
+
+deepstreamClient.login({
   username: 'server',
   password: 'sp'
 }, function(success, data)
@@ -10,7 +15,6 @@ const deepstreamClient = deepstream('localhost:6020').login({
   console.log("Success:", success);
   console.log("Data:", data);
 });
-
 // var searchProvider = new rethinkSearch({logLevel: 3, deepstreamUrl: "localhost:6020", deepstreamCredentials: {username: 'rethinkdb'}, rethinkdbConnectionParams: {host: "localhost", port: 28015, db: "deepstream"}});
 // searchProvider.start();
 

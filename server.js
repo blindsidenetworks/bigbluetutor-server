@@ -124,7 +124,11 @@ r.connect({host: "localhost", port: "28015"}, function(error, conn)
 
 server.on("started", () =>
 {
-  dsClient = deepstreamClient('localhost:6020').login({
+  dsClient = deepstreamClient('localhost:6020').on("error", error =>
+  {
+    console.log(error);
+  });
+  dsClient.login({
     username: 'server',
     password: 'sp'
   });
