@@ -91,7 +91,7 @@ server.set("authenticationHandler",
             }
             else
             {
-              console.log("Error: no user with matching Google ID exists and no username was given");
+              console.log("Error: no user with matching Google ID exists and no username was given. Redirecting to account creation page");
               callback(null, {username: "Access denied", clientData: {needsUsername: true}});
             }
           });

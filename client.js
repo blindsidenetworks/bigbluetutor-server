@@ -323,20 +323,6 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
   });
 });
 
-//Get user's messages
-deepstreamClient.rpc.provide('getMessages', (data, response) =>
-{
-  /*
-  var username = data.username;
-  var record = deepstreamClient.record.getRecord("messages");
-  record.whenReady(() => {
-    response.send(record.get("messages"));
-  });
-  */
-  console.log(data);
-  response.send("Hello");
-});
-
 //Create a new user record with a new username
 //Also creates a profile record. The profile record stores private user data, while the user record stores public data
 deepstreamClient.rpc.provide("createUser", (data, response) =>
