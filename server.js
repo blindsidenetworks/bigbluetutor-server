@@ -85,7 +85,7 @@ server.set("authenticationHandler",
                 else if(result.username)
                 {
                   //User creation succeeded
-                  dsClient.record.getRecord("profile/" + profiles[0].username).whenReady(userRecord =>
+                  dsClient.record.getRecord("profile/" + result.username).whenReady(userRecord =>
                   {
                     userRecord.set("profilePic", payload.picture);
                     callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
