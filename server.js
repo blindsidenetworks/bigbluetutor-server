@@ -36,6 +36,7 @@ server.set("authenticationHandler",
           return;
         }
         var payload = login.getPayload();
+        console.log(login.getPayload());
         //Check if a user with a matching Google ID exists in the database
         r.db("deepstream").table("auth").filter(r.row("googleID").eq(payload.sub)).run(connection, (error, cursor) =>
         {
@@ -56,8 +57,12 @@ server.set("authenticationHandler",
             console.log(profiles);
             if(profiles.length === 1 && profiles[0].username)
             {
-              //Found user, so log the user in with their username
-              callback(true, {username: profiles[0].username, serverData:{idToken: authData.idToken, role: "user"}, clientData: {username: profiles[0].username}});
+              //Found user, so set the profile picture and log the user in with their username
+              dsClient.record.getRecord("profile/" + profiles[0].username).whenReady(userRecord)
+              {
+                userRecord.set("profilePic", payload.picture);
+                callback(true, {username: profiles[0].username, serverData:{idToken: authData.idToken, role: "user"}, clientData: {username: profiles[0].username}});
+              }
             }
             else if(profiles.length > 1)
             {
@@ -79,8 +84,11 @@ server.set("authenticationHandler",
                 }
                 else if(result.username)
                 {
-                  //User creation succeeded
-                  callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
+                  //User creation succeededdsClient.record.getRecord("profile/" + profiles[0].username).whenReady(userRecord)
+                  {
+                    userRecord.set("profilePic", payload.picture);
+                    callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
+                  }
                 }
                 else
                 {
