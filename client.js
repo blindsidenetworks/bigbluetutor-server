@@ -17,9 +17,7 @@ deepstreamClient.login({
 
 var createMeeting = require('./meeting.js');
 
-var users = {};
-var dataRecord;
-
+/*
 var https = require('https');
 var fs = require('fs');
 
@@ -37,8 +35,9 @@ function authenticate(auth) {
   }
   return false;
 }
+*/
 
-dataRecord = deepstreamClient.record.getRecord('data')
+var dataRecord = deepstreamClient.record.getRecord('data');
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
   'Language':['English','French','Spanish', 'Italian', 'German','Mandarin','Japanese','Arabic','Russian', 'Latin'],
