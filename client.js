@@ -1,5 +1,4 @@
 const deepstream = require('deepstream.io-client-js');
-// var rethinkSearch = require('deepstream.io-provider-search-rethinkdb');
 
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
@@ -15,65 +14,14 @@ deepstreamClient.login({
   console.log("Success:", success);
   console.log("Data:", data);
 });
-// var searchProvider = new rethinkSearch({logLevel: 3, deepstreamUrl: "localhost:6020", deepstreamCredentials: {username: 'rethinkdb'}, rethinkdbConnectionParams: {host: "localhost", port: 28015, db: "deepstream"}});
-// searchProvider.start();
 
 var createMeeting = require('./meeting.js');
 
 var users = {};
 var dataRecord;
 
-/*
-app.use(function(req, res) {
-  var username = req.body.authData.username;
-  var password = req.body.authData.password;
-  console.log(username)
-  var role = "client"
-  //hack fix
-  if (username === "server" && password === "sp") {
-    users[username] = "sp"
-    res.json({
-      userId: username,
-      clientData: { data: 'server' },
-      serverData: { id: username, role: 'server' }
-    })
-  }else if (!username){
-    res.status(403).end();
-  }else if (!users[username]) {
-    //signup
-    users[username] = password
-    //instantiate with public data
-    var user = {
-      username:username,
-      position: 'no position',
-      description: '',
-      ratings: {},
-      tutor: false
-    }
-    var userRecord = client.record.getRecord('user/'+user.username);
-    userRecord.set(user);
-    res.json({
-        userId: username,
-        clientData: { data: 'client' },
-        serverData: { id: username, role: 'client' }
-      });
-  }else if (users[username] === password) {
-    res.json({
-        userId: username,
-        clientData: { data: 'client' },
-        serverData: { id: username, role: 'client' }
-      });
-  }else {
-    res.status(403).end();
-  }
-});
-*/
-
-//const WebSocket = require('ws');
-
 var https = require('https');
 var fs = require('fs');
-//var User = require('./user.js');
 
 var options = {
   key: fs.readFileSync('privkey.pem'),
@@ -91,7 +39,6 @@ function authenticate(auth) {
 }
 
 dataRecord = deepstreamClient.record.getRecord('data')
-dataRecord.set('tutors',[]);
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
   'Language':['English','French','Spanish', 'Italian', 'German','Mandarin','Japanese','Arabic','Russian', 'Latin'],
@@ -99,9 +46,7 @@ dataRecord.set('categories',{
   'Business':['Accounting','Business Law', 'Business Management', 'Economics', 'Entrepreneurship', 'Finance', 'Marketing', 'Tax'],
   'Science':['Astronomy', 'Biology', 'Chemistry', 'Physics'],
   'Social Sciences':['Anthropology', 'Geography', 'History'],
-  'Arts':['Abstract Art', 'Art History', 'Visual Arts'],
-  'Technology':['Artificial Intelligence', 'C', 'C++', 'Human-Computer Interaction', 'Java', 'Javascript', 'Ruby', 'Swift', 'Web Development'],
-  'Miscellaneous':['Auctioneering', 'Bagpiping', 'Canadian Studies', 'Mortuary Science', 'Popular Music', 'Recreation and Leisure Studies', 'Viticulture and Enology']
+  'Arts':['Abstract Art', 'Art History', 'Visual Arts']
 });
 
 deepstreamClient.event.listen('createMeeting/.*/.*', function(match, isSubscribed, response) {
@@ -163,11 +108,6 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
               clientMessages[contact].splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
               clientRecord.set('messages', clientMessages);
             }
-
-            //messages[client].push({user: client, message: "session in progress", special: "ActiveSession", active: true});
-            //clientMessages[contact].push({user: client, message: "session in progress", special: "ActiveSession", active: true});
-            //record.set('messages',messages);
-            //clientRecord.set('messages',clientMessages);
 
             clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
             requestMeetings.splice(requestMeetings.indexOf(client), 1);
