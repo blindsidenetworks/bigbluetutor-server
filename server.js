@@ -2,13 +2,14 @@ var deepstream = require("deepstream.io");
 var rethinkdb = require("deepstream.io-storage-rethinkdb");
 var deepstreamClient = require("deepstream.io-client-js");
 var googleAuth = require("google-auth-library");
+var dotenv = require('dotenv').config().parsed;
 var r = require("rethinkdb");
 
 const server = new deepstream("conf/config.yml");
 var connection = null;
 
 //Google auth setup
-var googleClientID = "591220975174-hqfbvf7iuegj6nf1h6jkldeuh3ia72v7.apps.googleusercontent.com";
+var googleClientID = dotenv.GOOGLE_CLIENT_ID;
 
 var auth = new googleAuth();
 var client = new auth.OAuth2(googleClientID, "", "");
@@ -115,8 +116,8 @@ server.set("authenticationHandler",
   isReady: true
 });
 
-server.set("storage", new rethinkdb({port: 28015, host: "localhost", database: "deepstream", defaultTable: "deepstream_records", splitChar: "/"}));
-r.connect({host: "localhost", port: "28015"}, function(error, conn)
+server.set("storage", new rethinkdb({port: parseInt(dotenv.DB_PORT), host: dotenv.DB_HOST, database: dotenv.DB_NAME, defaultTable: dotenv.DB_DEFAULT_TABLE, splitChar: "/"}));
+r.connect({host: dotenv.DB_HOST, port: dotenv.DB_PORT}, function(error, conn)
 {
   if(error) throw error;
   connection = conn;
