@@ -36,7 +36,6 @@ server.set("authenticationHandler",
           return;
         }
         var payload = login.getPayload();
-        console.log(login.getPayload());
         //Check if a user with a matching Google ID exists in the database
         r.db("deepstream").table("auth").filter(r.row("googleID").eq(payload.sub)).run(connection, (error, cursor) =>
         {
