@@ -5,26 +5,39 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start:server": "node server.js",
+    "start:client": "sleep 5 && node client.js",
+    "start:provider-search": "sleep 5 && node providerSearch.js",
+    "start:all": "npm run start:server & npm run start:client & npm run start:provider-search",
+    "start": "npm run start:all",
+    "db:createtables1": "node createtables.js",
+    "db:createtables2": "sleep 2 && python3 cleartables.py",
+    "db:createtables": "npm run db:createtables1 & npm run db:createtables2"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RPHLuo/BigBlueTutor.git"
+    "url": "git+https://github.com/blindsidenetworks/bigbluetutor-server"
   },
-  "author": "Robin Luo",
-  "license": "ISC",
+  "author": "Blindside Networks",
+  "contributors": [
+    "Robin Luo <robin.luo@blindsidenetworks.com> (https://github.com/RPHLuo)",
+    "Cody Browne <cody.browne@blindsidenetworks.com> (https://github.com/browniecab)"
+  ],
+  "license": "LGPL-3.0",
   "bugs": {
-    "url": "https://github.com/RPHLuo/BigBlueTutor/issues"
+    "url": "https://github.com/blindsidenetworks/bigbluetutor-server/issues"
   },
-  "homepage": "https://github.com/RPHLuo/BigBlueTutor#readme",
+  "homepage": "https://github.com/blindsidenetworks/bigbluetutor-server#readme",
   "dependencies": {
-    "body-parser": "^1.17.2",
-    "deepstream.io": "^3.0.0",
-    "deepstream.io-client-js": "^2.2.1",
+    "body-parser": "^1.18.2",
+    "deepstream.io": "^3.1.1",
+    "deepstream.io-client-js": "^2.3.0",
     "deepstream.io-provider-search-rethinkdb": "^2.0.0",
     "deepstream.io-storage-rethinkdb": "^1.0.2",
+    "dotenv": "^4.0.0",
     "google-auth-library": "^0.11.0",
+    "parallelshell": "^3.0.2",
     "rethinkdb": "^2.3.3",
-    "ws": "^3.1.0"
+    "ws": "^3.2.0"
   }
 }
