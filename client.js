@@ -17,10 +17,15 @@ deepstreamClient.login({
 
 var createMeeting = require('./meeting.js');
 
-var users = {};
-var dataRecord;
-
+/*
 var https = require('https');
+var fs = require('fs');
+
+var options = {
+  key: fs.readFileSync('privkey.pem'),
+  cert: fs.readFileSync('cert.pem'),
+  strictSSL: false
+}
 
 function authenticate(auth) {
   console.log(auth);
@@ -30,8 +35,9 @@ function authenticate(auth) {
   }
   return false;
 }
+*/
 
-dataRecord = deepstreamClient.record.getRecord('data')
+var dataRecord = deepstreamClient.record.getRecord('data');
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
   'Language':['English','French','Spanish', 'Italian', 'German','Mandarin','Japanese','Arabic','Russian', 'Latin'],
@@ -48,11 +54,13 @@ deepstreamClient.event.listen('createMeeting/.*/.*', function(match, isSubscribe
 
 deepstreamClient.rpc.provide('changeDescription', (data, response) => {
   var username = data.username;
-  var userRecord = deepstreamClient.record.getRecord('user/'+username);
-  var user = userRecord.get();
+  deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
+  {
+    var user = userRecord.get();
 
-  user.description = data.description;
-  userRecord.set(user)
+    user.description = data.description;
+    userRecord.set(user)
+  });
 });
 
 deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
@@ -201,31 +209,36 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
 deepstreamClient.rpc.provide('registerTutor', (data, response) => {
   console.log("registerTutor");
     var username = data.username;
-    var userRecord = deepstreamClient.record.getRecord('user/'+username);
-    var user = userRecord.get();
+    deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
+    {
+      var user = userRecord.get();
 
-    //check for broader subjects
-    var subjects = [];
-    var categoryList = dataRecord.get('categories');
-    var categories = data.categories;
-    for(var category in categoryList) {
-      if (subjects.indexOf(category) == -1) {
-        for (subcategory in categoryList[category]) {
-          if(categories.indexOf(categoryList[category][subcategory]) != -1) {
-            subjects.push(category);
-            break;
+      //check for broader subjects
+      var subjects = [];
+      var categoryList = dataRecord.get('categories');
+      var categories = data.categories;
+      for(var category in categoryList) {
+        if (subjects.indexOf(category) == -1) {
+          for (subcategory in categoryList[category]) {
+            if(categories.indexOf(categoryList[category][subcategory]) != -1) {
+              subjects.push(category);
+              break;
+            }
           }
         }
       }
-    }
 
-    //make user tutor
-    if (!user.tutor) {
-      user.tutor = true;
-      user.subjects = subjects;
-      user.categories = data.categories;
-      userRecord.set(user);
-    }
+      //make user tutor
+      if (!user.tutor) {
+        user.tutor = true;
+        user.subjects = subjects;
+        user.categories = data.categories;
+        var tutors = dataRecord.get('tutors') || [];
+        tutors.push(user);
+        dataRecord.set('tutors', tutors);
+        userRecord.set(user);
+      }
+    });
 });
 
 deepstreamClient.rpc.provide('sendMessage', (data, response) => {
