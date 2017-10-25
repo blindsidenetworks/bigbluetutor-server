@@ -1,5 +1,8 @@
-var dotenv = require('dotenv').config().parsed;
+var dotenv = require('dotenv');
 var r = require('rethinkdb');
+
+var config = dotenv.config().parsed;
+
 const deepstream = require('deepstream.io-client-js');
 const provider = deepstream('localhost:6020');
 
@@ -12,7 +15,7 @@ provider.login({
   console.log(success);
 });
 var connection = null;
-r.connect( {host: dotenv.DB_HOST, port: parseInt(dotenv.DB_PORT)}, function(err, conn) {
+r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err, conn) {
   if (err) throw err;
   connection = conn;
 });
