@@ -1,12 +1,16 @@
 var deepstream = require("deepstream.io");
 var rethinkdb = require("deepstream.io-storage-rethinkdb");
 var deepstreamClient = require("deepstream.io-client-js");
+var dotenv = require('dotenv');
+var r = require("rethinkdb");
+
+var config = dotenv.config().parsed;
 
 const server = new deepstream("conf/config.yml");
 
 var dsClient;
 
-server.set("storage", new rethinkdb({port: 28015, host: "localhost", database: "deepstream", defaultTable: "deepstream_records", splitChar: "/"}));
+server.set("storage", new rethinkdb({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
 server.set("authenticationHandler",
 {
   isValidUser: function(connectionData, authData, callback)
