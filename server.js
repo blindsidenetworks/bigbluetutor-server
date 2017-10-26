@@ -2,9 +2,11 @@ var Deepstream = require("deepstream.io");
 var RethinkDB = require("deepstream.io-storage-rethinkdb");
 var deepstreamClient = require("deepstream.io-client-js");
 var GoogleAuth = require("google-auth-library");
+var dotenv = require("dotenv");
 var r = require("rethinkdb");
 
 const server = new Deepstream("conf/config.yml");
+var config = new dotenv.config().parsed;
 var connection = null;
 
 //Google auth setup
@@ -112,6 +114,39 @@ server.set("authenticationHandler",
     {
       callback(true, {username: "SERVER", serverData:{role: "server"}});
     }
+    //For debugging only
+    else if (authData.username)
+    {
+      var username = authData.username.toLowerCase();
+      dsClient.record.has("profile/" + username, (error, hasRecord) =>
+      {
+        if(error || hasRecord) return;
+        dsClient.record.has("user/" + username, (error, hasRecord) =>
+        {
+          if(error || hasRecord) return;
+          dsClient.record.getRecord("profile/" + username).set(
+          {
+            username: username,
+            onboardingComplete: false,
+            stars: [],
+            pendingMeetings: [],
+            requestMeetings: [],
+            messages: {},
+            profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
+            meeting: ""
+          });
+          dsClient.record.getRecord("user/" + username).set(
+          {
+            username: username,
+            position: 'no position',
+            description: '',
+            ratings: {},
+            tutor: false,
+          });
+        });
+      });
+      callback(true, {username: username, serverData:{role: "user"}, clientData: {username: username}});
+    }
     else
     {
       callback({username: "Access denied"});
@@ -124,7 +159,7 @@ server.set("authenticationHandler",
   isReady: true
 });
 
-server.set("storage", new RethinkDB({port: 28015, host: "localhost", database: "deepstream", defaultTable: "deepstream_records", splitChar: "/"}));
+server.set("storage", new RethinkDB({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
 r.connect({host: "localhost", port: "28015"}, function(error, conn)
 {
   if(error)

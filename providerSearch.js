@@ -1,4 +1,4 @@
-r = require('rethinkdb');
+const r = require('rethinkdb');
 const deepstream = require('deepstream.io-client-js');
 const provider = deepstream('localhost:6020');
 
@@ -164,7 +164,6 @@ function categoryTutor(category, callback) {
 
 //Search for tutors who tutor the subject or category searched, or whose usernames match the search term
 function search(params, callback) {
-  console.log(params);
   r.db('deepstream').table('user')
   .filter(
     function(tutor) {

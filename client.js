@@ -217,9 +217,9 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       var subjects = [];
       var categoryList = dataRecord.get('categories');
       var categories = data.categories;
-      for(var category in categoryList) {
+      for(var category = 0; category < categoryList.length; ++category) {
         if (subjects.indexOf(category) == -1) {
-          for (subcategory in categoryList[category]) {
+          for (var subcategory = 0; subcategory < categoryList[category].length; ++subcategory) {
             if(categories.indexOf(categoryList[category][subcategory]) != -1) {
               subjects.push(category);
               break;
