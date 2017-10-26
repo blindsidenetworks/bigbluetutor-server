@@ -15,18 +15,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RPHLuo/BigBlueTutor.git"
+    "url": "git+https://github.com/blindsidenetworks/bigbluetutor-server"
   },
-  "author": "Robin Luo",
-  "license": "ISC",
+  "author": "Blindside Networks",
+  "contributors": [
+    "Robin Luo <robin.luo@blindsidenetworks.com> (https://github.com/RPHLuo)",
+    "Cody Browne <cody.browne@blindsidenetworks.com> (https://github.com/browniecab)"
+  ],
+  "license": "LGPL-3.0",
   "bugs": {
-    "url": "https://github.com/RPHLuo/BigBlueTutor/issues"
+    "url": "https://github.com/blindsidenetworks/bigbluetutor-server/issues"
   },
-  "homepage": "https://github.com/RPHLuo/BigBlueTutor#readme",
+  "homepage": "https://github.com/blindsidenetworks/bigbluetutor-server#readme",
   "dependencies": {
-    "body-parser": "^1.17.2",
+    "body-parser": "^1.18.2",
     "deepstream.io": "^3.1.1",
-    "deepstream.io-client-js": "^2.2.1",
+    "deepstream.io-client-js": "^2.3.0",
     "deepstream.io-provider-search-rethinkdb": "^2.0.0",
     "deepstream.io-storage-rethinkdb": "^1.0.2",
     "dotenv": "^4.0.0",
@@ -34,6 +38,6 @@
     "needle": "^2.0.1",
     "parallelshell": "^3.0.2",
     "rethinkdb": "^2.3.3",
-    "ws": "^3.1.0"
+    "ws": "^3.2.0"
   }
 }

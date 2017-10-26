@@ -60,7 +60,7 @@ server.set("authenticationHandler",
             if(profiles.length === 1 && profiles[0].username)
             {
               //Found user, so set the profile picture and log the user in with their username
-              dsClient.record.getRecord("profile/" + profiles[0].username).whenReady(userRecord =>
+              dsClient.record.getRecord("user/" + profiles[0].username).whenReady(userRecord =>
               {
                 userRecord.set("profilePic", payload.picture);
                 callback(true, {username: profiles[0].username, serverData:{idToken: authData.idToken, role: "user"}, clientData: {username: profiles[0].username}});
@@ -87,7 +87,7 @@ server.set("authenticationHandler",
                 else if(result.username)
                 {
                   //User creation succeeded
-                  dsClient.record.getRecord("profile/" + result.username).whenReady(userRecord =>
+                  dsClient.record.getRecord("user/" + result.username).whenReady(userRecord =>
                   {
                     userRecord.set("profilePic", payload.picture);
                     callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
@@ -132,12 +132,12 @@ server.set("authenticationHandler",
             pendingMeetings: [],
             requestMeetings: [],
             messages: {},
-            profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
             meeting: ""
           });
           dsClient.record.getRecord("user/" + username).set(
           {
             username: username,
+            profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
             position: 'no position',
             description: '',
             ratings: {},
