@@ -213,9 +213,6 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
         user.tutor = true;
         user.subjects = subjects;
         user.categories = data.categories;
-        var tutors = dataRecord.get('tutors') || [];
-        tutors.push(user);
-        dataRecord.set('tutors', tutors);
         userRecord.set(user);
       }
     });
