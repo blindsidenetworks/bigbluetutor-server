@@ -64,3 +64,10 @@ jobs:
 
       # run tests!
       #- run: yarn test
+
+      - deploy:
+          name: Build docker image
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              ./scripts/build_image_master.sh
+            fi
