@@ -4,9 +4,10 @@ var deepstreamClient = require("deepstream.io-client-js");
 var dotenv = require("dotenv");
 
 var config = dotenv.config().parsed;
+
 const server = new Deepstream("conf/config.yml");
 //We need to wait some time until the tables are created before deleting the test records
-const waitTime = 2000;
+const waitTime = 3000;
 var tables = ["auth", "profile", "user"];
 
 server.set("storage", new RethinkDB({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
