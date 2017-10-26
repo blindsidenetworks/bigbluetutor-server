@@ -162,17 +162,19 @@ function categoryTutor(category, callback) {
   });
 }
 
+//Search for tutors who tutor the subject or category searched, or whose usernames match the search term
 function search(params, callback) {
+  console.log(params);
   r.db('deepstream').table('user')
   .filter(
     function(tutor) {
       return tutor('categories').contains(function(subject) {
-        return subject.match(params)
+        return subject.downcase().match(params.toLowerCase());
       })
       .or(tutor('subjects').contains(function(subject) {
-        return subject.match(params)
+        return subject.downcase().match(params.toLowerCase());
       }))
-      .or(tutor('username').match(params));
+      .or(tutor('username').downcase().match(params.toLowerCase()));
     })
 //  .orderBy(function(tutor) {
 //      return tutor('username').split("").count()
@@ -180,7 +182,7 @@ function search(params, callback) {
   .run(connection, (err, cursor) => {
     if (err) throw err
     cursor.toArray(function(err, result) {
-      var tutors = [];
+      console.log(result);
       r.expr(result).orderBy('username').limit(50);
       callback(result);
     })
