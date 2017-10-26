@@ -25,8 +25,6 @@ r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err,
 //    subscribe(subject.split('/')[1], function (tutors, subject) {
 //      provider.event.emit('tutor/'+subject, {subject: subject, data: tutors});
 //    });
-//  }else {
-//    console.log('tutor listen ended');
 //  }
 //});
 
@@ -52,7 +50,7 @@ provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, respon
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
   }else {
-    console.log('tutor listen ended');
+    
   }
 });
 
@@ -62,7 +60,7 @@ provider.event.listen('category/tutor/.*', function(subject, isSubscribed, respo
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
   }else {
-    console.log('tutor listen ended');
+    
   }
 });
 
@@ -171,12 +169,12 @@ function search(params, callback) {
   .filter(
     function(tutor) {
       return tutor('categories').contains(function(subject) {
-        return subject.match(params)
+        return subject.match('(?i)'+params)
       })
       .or(tutor('subjects').contains(function(subject) {
-        return subject.match(params)
+        return subject.match('(?i)'+params)
       }))
-      .or(tutor('username').match(params));
+      .or(tutor('username').match('(?i)'+params));
     })
 //  .orderBy(function(tutor) {
 //      return tutor('username').split("").count()
