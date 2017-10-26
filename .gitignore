@@ -1,4 +1,4 @@
 node_modules/
 rethinkdb_data/
 package-lock.json
-.env
+.env 
