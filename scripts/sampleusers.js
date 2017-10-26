@@ -51,7 +51,7 @@ server.on("started", () =>
 {
   var dsClient = deepstreamClient('localhost:6020').on("error", error => {console.log(error);});
   var j = 0;
-  function exitIfDone()
+  var exitIfDone = function()
   {
     if(j === profiles.length + users.length)
     {
@@ -67,6 +67,7 @@ server.on("started", () =>
 
   dsClient.login({username: "server", password: "sp"}, () =>
   {
+    var i;
     for(i = 0; i < profiles.length; ++i)
     {
       (function(i)

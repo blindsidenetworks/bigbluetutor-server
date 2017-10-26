@@ -180,9 +180,8 @@ function search(params, callback) {
 //      return tutor('username').split("").count()
 //    })
   .run(connection, (err, cursor) => {
-    if (err) throw err
+    if (err) throw err;
     cursor.toArray(function(err, result) {
-      console.log(result);
       r.expr(result).orderBy('username').limit(50);
       callback(result);
     })

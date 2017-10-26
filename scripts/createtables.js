@@ -35,7 +35,7 @@ server.on("started", () =>
   var dsClient = deepstreamClient('localhost:6020').on("error", error => {console.log(error);});
   //The script will exit once all 4 records have been deleted
   var j = 0;
-  function exitIfDone()
+  var exitIfDone = function()
   {
     if(++j === tables.length + 1)
     {
@@ -52,7 +52,7 @@ server.on("started", () =>
       record.on("delete", () => {exitIfDone();});
       setTimeout(() => {record.delete()}, waitTime);
     });
-    for(i = 0; i < tables.length; ++i)
+    for(var i = 0; i < tables.length; ++i)
     {
       dsClient.record.getRecord(tables[i] + "/test").whenReady(record =>
       {
