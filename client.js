@@ -17,26 +17,6 @@ deepstreamClient.login({
 
 var createMeeting = require('./meeting.js');
 
-/*
-var https = require('https');
-var fs = require('fs');
-
-var options = {
-  key: fs.readFileSync('privkey.pem'),
-  cert: fs.readFileSync('cert.pem'),
-  strictSSL: false
-}
-
-function authenticate(auth) {
-  console.log(auth);
-  console.log(users);
-  if (auth && auth.username && auth.password && users[auth.username] === auth.password) {
-    return true;
-  }
-  return false;
-}
-*/
-
 var dataRecord = deepstreamClient.record.getRecord('data');
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
@@ -233,12 +213,10 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
         user.tutor = true;
         user.subjects = subjects;
         user.categories = data.categories;
-        var tutors = dataRecord.get('tutors') || [];
-        tutors.push(user);
-        dataRecord.set('tutors', tutors);
         userRecord.set(user);
       }
-    });
+    }
+  });
 });
 
 deepstreamClient.rpc.provide('sendMessage', (data, response) => {
