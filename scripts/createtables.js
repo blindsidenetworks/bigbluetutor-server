@@ -9,7 +9,7 @@ const server = new Deepstream("conf/config.yml");
 const waitTime = 2000;
 var tables = ["auth", "profile", "user"];
 
-server.set("storage", new RethinkDB({port: 28015, host: "localhost", database: "deepstream", defaultTable: "deepstream_records", splitChar: "/"}));
+server.set("storage", new RethinkDB({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
 server.set("authenticationHandler",
 {
   isValidUser: function(connectionData, authData, callback)

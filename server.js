@@ -160,7 +160,7 @@ server.set("authenticationHandler",
 });
 
 server.set("storage", new RethinkDB({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
-r.connect({host: "localhost", port: "28015"}, function(error, conn)
+r.connect({host: config.DB_HOST, port: config.DB_PORT}, (error, conn) =>
 {
   if(error)
   {

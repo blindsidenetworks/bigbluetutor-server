@@ -5,7 +5,13 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start:server": "node server.js",
+    "start:client": "sleep 5 && node client.js",
+    "start:provider-search": "sleep 5 && node providerSearch.js",
+    "start:all": "npm run start:server && npm run start:client && npm run start:provider-search",
+    "start": "npm run start:all",
+    "db:cleartables": "sleep 2 && python3 ./scripts/cleartables.py",
+    "db:createtables": "node createtables.js && npm run db:cleartables"
   },
   "repository": {
     "type": "git",
@@ -25,6 +31,8 @@
     "deepstream.io-storage-rethinkdb": "^1.0.2",
     "dotenv": "^4.0.0",
     "google-auth-library": "^0.11.0",
+    "needle": "^2.0.1",
+    "parallelshell": "^3.0.2",
     "rethinkdb": "^2.3.3",
     "ws": "^3.1.0"
   }
