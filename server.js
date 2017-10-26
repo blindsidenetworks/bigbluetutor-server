@@ -1,19 +1,18 @@
-var deepstream = require("deepstream.io");
-var rethinkdb = require("deepstream.io-storage-rethinkdb");
+var Deepstream = require("deepstream.io");
+var RethinkDB = require("deepstream.io-storage-rethinkdb");
 var deepstreamClient = require("deepstream.io-client-js");
-var googleAuth = require("google-auth-library");
-var dotenv = require('dotenv');
+var GoogleAuth = require("google-auth-library");
+var dotenv = require("dotenv");
 var r = require("rethinkdb");
 
-var config = dotenv.config().parsed;
-
-const server = new deepstream("conf/config.yml");
+const server = new Deepstream("conf/config.yml");
+var config = new dotenv.config().parsed;
 var connection = null;
 
 //Google auth setup
 var googleClientID = config.GOOGLE_CLIENT_ID;
 
-var auth = new googleAuth();
+var auth = new GoogleAuth();
 var client = new auth.OAuth2(googleClientID, "", "");
 var dsClient;
 
@@ -59,8 +58,12 @@ server.set("authenticationHandler",
             console.log(profiles);
             if(profiles.length === 1 && profiles[0].username)
             {
-              //Found user, so log the user in with their username
-              callback(true, {username: profiles[0].username, serverData:{idToken: authData.idToken, role: "user"}, clientData: {username: profiles[0].username}});
+              //Found user, so set the profile picture and log the user in with their username
+              dsClient.record.getRecord("user/" + profiles[0].username).whenReady(userRecord =>
+              {
+                userRecord.set("profilePic", payload.picture);
+                callback(true, {username: profiles[0].username, serverData:{idToken: authData.idToken, role: "user"}, clientData: {username: profiles[0].username}});
+              });
             }
             else if(profiles.length > 1)
             {
@@ -83,7 +86,11 @@ server.set("authenticationHandler",
                 else if(result.username)
                 {
                   //User creation succeeded
-                  callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
+                  dsClient.record.getRecord("user/" + result.username).whenReady(userRecord =>
+                  {
+                    userRecord.set("profilePic", payload.picture);
+                    callback(true, {username: result.username, serverData:{idToken: authData.idToken, role: "user"}, clientData: result});
+                  });
                 }
                 else
                 {
@@ -94,7 +101,7 @@ server.set("authenticationHandler",
             }
             else
             {
-              console.log("Error: no user with matching Google ID exists and no username was given");
+              console.log("Error: no user with matching Google ID exists and no username was given. Redirecting to account creation page");
               callback(null, {username: "Access denied", clientData: {needsUsername: true}});
             }
           });
@@ -118,10 +125,13 @@ server.set("authenticationHandler",
   isReady: true
 });
 
-server.set("storage", new rethinkdb({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
-r.connect({host: config.DB_HOST, port: config.DB_PORT}, function(error, conn)
+server.set("storage", new RethinkDB({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
+r.connect({host: config.DB_HOST, port: config.DB_PORT}, (error, conn) =>
 {
-  if(error) throw error;
+  if(error)
+  {
+    throw error;
+  }
   connection = conn;
 });
 
