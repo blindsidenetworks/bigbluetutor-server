@@ -8,11 +8,10 @@
     "start:server": "node server.js",
     "start:client": "sleep 5 && node client.js",
     "start:provider-search": "sleep 5 && node providerSearch.js",
-    "start:all": "npm run start:server & npm run start:client & npm run start:provider-search",
+    "start:all": "npm run start:server && npm run start:client && npm run start:provider-search",
     "start": "npm run start:all",
-    "db:createtables1": "node createtables.js",
-    "db:createtables2": "sleep 2 && python3 cleartables.py",
-    "db:createtables": "npm run db:createtables1 & npm run db:createtables2"
+    "db:cleartables": "sleep 2 && python3 ./scripts/cleartables.py",
+    "db:createtables": "node createtables.js && npm run db:cleartables"
   },
   "repository": {
     "type": "git",
@@ -36,6 +35,7 @@
     "deepstream.io-storage-rethinkdb": "^1.0.2",
     "dotenv": "^4.0.0",
     "google-auth-library": "^0.11.0",
+    "needle": "^2.0.1",
     "parallelshell": "^3.0.2",
     "rethinkdb": "^2.3.3",
     "ws": "^3.2.0"
