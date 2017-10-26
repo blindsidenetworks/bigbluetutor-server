@@ -6,7 +6,7 @@ var dotenv = require("dotenv");
 var r = require("rethinkdb");
 
 const server = new Deepstream("conf/config.yml");
-var config = new dotenv.config().parsed;
+var config = dotenv.config().parsed;
 var connection = null;
 
 //Google auth setup

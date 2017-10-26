@@ -188,33 +188,32 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
 
 deepstreamClient.rpc.provide('registerTutor', (data, response) => {
   console.log("registerTutor");
-    var username = data.username;
-    deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
-    {
-      var user = userRecord.get();
+  var username = data.username;
+  deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
+  {
+    var user = userRecord.get();
 
-      //check for broader subjects
-      var subjects = [];
-      var categoryList = dataRecord.get('categories');
-      var categories = data.categories;
-      for(var category = 0; category < categoryList.length; ++category) {
-        if (subjects.indexOf(category) == -1) {
-          for (var subcategory = 0; subcategory < categoryList[category].length; ++subcategory) {
-            if(categories.indexOf(categoryList[category][subcategory]) != -1) {
-              subjects.push(category);
-              break;
-            }
+    //check for broader subjects
+    var subjects = [];
+    var categoryList = dataRecord.get('categories');
+    var categories = data.categories;
+    for(var category = 0; category < categoryList.length; ++category) {
+      if (subjects.indexOf(category) == -1) {
+        for (var subcategory = 0; subcategory < categoryList[category].length; ++subcategory) {
+          if(categories.indexOf(categoryList[category][subcategory]) != -1) {
+            subjects.push(category);
+            break;
           }
         }
       }
+    }
 
-      //make user tutor
-      if (!user.tutor) {
-        user.tutor = true;
-        user.subjects = subjects;
-        user.categories = data.categories;
-        userRecord.set(user);
-      }
+    //make user tutor
+    if (!user.tutor) {
+      user.tutor = true;
+      user.subjects = subjects;
+      user.categories = data.categories;
+      userRecord.set(user);
     }
   });
 });

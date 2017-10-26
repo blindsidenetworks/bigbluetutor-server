@@ -8,22 +8,22 @@ const server = new Deepstream("conf/config.yml");
 
 var profiles =
 [
-  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'stars': [], 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'jason thompson', 'meeting': '', 'password': ''},
-  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'sally smith', 'meeting': ''},
-  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'stars': [], 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'adam wong', 'meeting': '', 'password': ''},
-  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'john doe', 'meeting': ''},
-  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'jane doe', 'meeting': ''},
-  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'julia mcdonald', 'meeting': ''}
+  {'stars': [], 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'jason thompson', 'meeting': '', 'password': ''},
+  {'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'sally smith', 'meeting': ''},
+  {'stars': [], 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'adam wong', 'meeting': '', 'password': ''},
+  {'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'john doe', 'meeting': ''},
+  {'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'jane doe', 'meeting': ''},
+  {'stars': [], 'onboardingComplete': false, 'requestMeetings': [], 'messages': {}, 'pendingMeetings': [], 'username': 'julia mcdonald', 'meeting': ''}
 ];
 
 var users =
 [
-  {'categories': ['Tax', 'Accounting', 'Biology', 'Geography'], 'ratings': {}, 'tutor': true, 'username': 'jason thompson', 'description': 'I like business', 'position': 'no position', 'subjects': ['Business', 'Science', 'Social Sciences']},
-  {'ratings': {}, 'tutor': false, 'username': 'sally smith', 'description': 'I like math and history', 'position': 'no position'},
-  {'ratings': {}, 'tutor': false, 'username': 'adam wong', 'description': 'I like to study the arts.', 'position': 'no position'},
-  {'categories': ['Visual Arts', 'Algebra', 'Chemistry', 'Physics', 'Astronomy', 'History'], 'ratings': {}, 'tutor': true, 'username': 'john doe', 'description': 'I love science', 'position': 'no position', 'subjects': ['Arts', 'Math', 'Science', 'Social Sciences']},
-  {'categories': ['Abstract Art', 'Astronomy', 'Anthropology', 'Finance', 'Entrepreneurship'], 'ratings': {}, 'tutor': true, 'username': 'jane doe', 'description': 'I like business', 'position': 'no position', 'subjects': ['Arts', 'Business', 'Science', 'Social Sciences']},
-  {'ratings': {}, 'tutor': false, 'username': 'julia mcdonald', 'description': '', 'position': 'no position'}
+  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'categories': ['Tax', 'Accounting', 'Biology', 'Geography'], 'ratings': {}, 'tutor': true, 'username': 'jason thompson', 'description': 'I like business', 'position': 'no position', 'subjects': ['Business', 'Science', 'Social Sciences']},
+  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'ratings': {}, 'tutor': false, 'username': 'sally smith', 'description': 'I like math and history', 'position': 'no position'},
+  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'ratings': {}, 'tutor': false, 'username': 'adam wong', 'description': 'I like to study the arts.', 'position': 'no position'},
+  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'categories': ['Visual Arts', 'Algebra', 'Chemistry', 'Physics', 'Astronomy', 'History'], 'ratings': {}, 'tutor': true, 'username': 'john doe', 'description': 'I love science', 'position': 'no position', 'subjects': ['Arts', 'Math', 'Science', 'Social Sciences']},
+  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'categories': ['Abstract Art', 'Astronomy', 'Anthropology', 'Finance', 'Entrepreneurship'], 'ratings': {}, 'tutor': true, 'username': 'jane doe', 'description': 'I like business', 'position': 'no position', 'subjects': ['Arts', 'Business', 'Science', 'Social Sciences']},
+  {'profilePic': 'http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png', 'ratings': {}, 'tutor': false, 'username': 'julia mcdonald', 'description': '', 'position': 'no position'}
 ];
 
 server.set("storage", new RethinkDB({port: parseInt(config.DB_PORT), host: config.DB_HOST, database: config.DB_NAME, defaultTable: config.DB_DEFAULT_TABLE, splitChar: "/"}));
