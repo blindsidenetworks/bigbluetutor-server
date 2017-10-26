@@ -113,39 +113,6 @@ server.set("authenticationHandler",
     {
       callback(true, {username: "SERVER", serverData:{role: "server"}});
     }
-    //For debugging only
-    else if (authData.username)
-    {
-      var username = authData.username.toLowerCase();
-      dsClient.record.has("profile/" + username, (error, hasRecord) =>
-      {
-        if(error || hasRecord) return;
-        dsClient.record.has("user/" + username, (error, hasRecord) =>
-        {
-          if(error || hasRecord) return;
-          dsClient.record.getRecord("profile/" + username).set(
-          {
-            username: username,
-            onboardingComplete: false,
-            stars: [],
-            pendingMeetings: [],
-            requestMeetings: [],
-            messages: {},
-            meeting: ""
-          });
-          dsClient.record.getRecord("user/" + username).set(
-          {
-            username: username,
-            profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
-            position: 'no position',
-            description: '',
-            ratings: {},
-            tutor: false,
-          });
-        });
-      });
-      callback(true, {username: username, serverData:{role: "user"}, clientData: {username: username}});
-    }
     else
     {
       callback({username: "Access denied"});
