@@ -10,7 +10,7 @@ var config = new dotenv.config().parsed;
 var connection = null;
 
 //Google auth setup
-var googleClientID = "591220975174-hqfbvf7iuegj6nf1h6jkldeuh3ia72v7.apps.googleusercontent.com";
+var googleClientID = config.GOOGLE_CLIENT_ID;
 
 var auth = new GoogleAuth();
 var client = new auth.OAuth2(googleClientID, "", "");
