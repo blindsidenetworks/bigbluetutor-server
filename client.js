@@ -215,7 +215,8 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
         user.categories = data.categories;
         userRecord.set(user);
       }
-    });
+    }
+  });
 });
 
 deepstreamClient.rpc.provide('sendMessage', (data, response) => {
