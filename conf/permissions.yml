@@ -9,10 +9,10 @@ record:
     delete: "user.data.role === 'server'"
     listen: true
   "profile/$userid":
-    create: "user.id == $userid || user.data.role === 'server'"
-    write: "user.id == $userid || user.data.role === 'server'"
-    read: "user.id == $userid || user.data.role === 'server'"
-    listen: "user.id == $userid"
+    create: "user.id === $userid || user.data.role === 'server'"
+    write: "user.id === $userid || user.data.role === 'server'"
+    read: "user.id === $userid || user.data.role === 'server'"
+    listen: "user.id === $userid"
 event:
   "*":
     publish: true

@@ -48,7 +48,7 @@ provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, respon
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
   }else {
-    
+
   }
 });
 
@@ -58,14 +58,13 @@ provider.event.listen('category/tutor/.*', function(subject, isSubscribed, respo
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
   }else {
-    
+
   }
 });
 
 //SUBSCRIBE DB Listener
 function subjectTutorSubscribe(category, callback) {
  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
-
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
@@ -88,7 +87,6 @@ function subjectTutorSubscribe(category, callback) {
 
 function categoryTutorSubscribe(category, callback) {
  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
-
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
@@ -164,26 +162,28 @@ function categoryTutor(category, callback) {
 
 //Search for tutors who tutor the subject or category searched, or whose usernames match the search term
 function search(params, callback) {
-  r.db('deepstream').table('user')
-  .filter(
-    function(tutor) {
-      return tutor('categories').contains(function(subject) {
-        return subject.match('(?i)'+params)
+  provider.presence.getAll(users =>
+  {
+    r.db('deepstream').table('user')
+    .filter(
+      function(tutor) {
+        return r.or(tutor('categories').contains(function(subject) {
+          return subject.match('(?i)'+params)
+        }), tutor('subjects').contains(function(subject) {
+          return subject.match('(?i)'+params)
+        }), tutor('username').match('(?i)'+params))
+        .and(r.expr(users).contains(tutor('username')));
       })
-      .or(tutor('subjects').contains(function(subject) {
-        return subject.match('(?i)'+params)
-      }))
-      .or(tutor('username').match('(?i)'+params));
-    })
-//  .orderBy(function(tutor) {
-//      return tutor('username').split("").count()
-//    })
-  .run(connection, (err, cursor) => {
-    if (err) throw err;
-    cursor.toArray(function(err, result) {
-      r.expr(result).orderBy('username').limit(50);
-      callback(result);
-    })
-  });
+  //  .orderBy(function(tutor) {
+  //      return tutor('username').split("").count()
+  //    })
+    .run(connection, (err, cursor) => {
 
+      if (err) throw err;
+      cursor.toArray(function(err, result) {
+        r.expr(result).orderBy('username').limit(50);
+        callback(result);
+      })
+    });
+  });
 }
