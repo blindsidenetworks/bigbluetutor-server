@@ -68,6 +68,7 @@ jobs:
       - deploy:
           name: Build docker image
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            echo $CI_PULL_REQUEST
+            if [ "${CIRCLE_BRANCH}" == "master" && "$CI_PULL_REQUEST" == "" ]; then
               ./scripts/build_image_master.sh
             fi

@@ -1,8 +1,9 @@
 #!/bin/bash
 
-docker build -t blindsidenetwks/bigbluetutor-server:master .
+#docker build -t blindsidenetwks/bigbluetutor-server:master .
+sudo docker build -f Dockerfile.prod .
 
-docker login -e jesus@blindsidenetworks.com -u $DOCKER_USER -p $DOCKER_PASS
-docker push blindsidenetwks/bigbluetutor-server:master
+sudo docker login -u $DOCKER_USER -p $DOCKER_PASS
+sudo docker push blindsidenetwks/bigbluetutor-server:master
 
-docker logout
+sudo docker logout
