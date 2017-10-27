@@ -152,7 +152,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
           var clientMessages = clientRecord.get('messages');
 
           var i = -1;
-          messages[client].some(function(item, index) {
+          messages[client].messages.some(function(item, index) {
               if(item.active) {
                 i = index;
                 return true;
@@ -160,12 +160,12 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
             });
 
           if (i!=-1) {
-            messages[client].splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
+            messages[client].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
             record.set('messages', messages);
           }
 
           i = -1;
-          clientMessages[contact].some(function(item, index) {
+          clientMessages[contact].messages.some(function(item, index) {
               if(item.active) {
                 i = index;
                 return true;
@@ -173,7 +173,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
             });
 
           if (i!=-1) {
-            clientMessages[contact].splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
+            clientMessages[contact].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
             clientRecord.set('messages', clientMessages);
           }
 
@@ -228,7 +228,7 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
       var record = deepstreamClient.record.getRecord("profile/"+contact);
       var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
       //profilePicture
-      var userRecord = deepstreamClient.record.getRecord('profile/'+client);
+      var userRecord = deepstreamClient.record.getRecord('user/'+client);
       userRecord.whenReady(() => {
       record.whenReady(() => {
         clientRecord.whenReady(() => {
