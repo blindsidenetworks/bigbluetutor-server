@@ -65,7 +65,6 @@ provider.event.listen('category/tutor/.*', function(subject, isSubscribed, respo
 //SUBSCRIBE DB Listener
 function subjectTutorSubscribe(category, callback) {
  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
-
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
@@ -88,7 +87,6 @@ function subjectTutorSubscribe(category, callback) {
 
 function categoryTutorSubscribe(category, callback) {
  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
-
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {

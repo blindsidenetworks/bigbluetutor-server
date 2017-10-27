@@ -70,6 +70,7 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
                 i = index;
                 return true;
               }
+              return false;
             });
 
             if (i!=-1) {
@@ -83,6 +84,7 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
                 i = index;
                 return true;
               }
+              return false;
             });
 
             if (i!=-1) {
@@ -169,6 +171,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
                 i = index;
                 return true;
               }
+              return false;
             });
 
           if (i!=-1) {
