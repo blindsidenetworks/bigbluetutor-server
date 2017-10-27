@@ -158,6 +158,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
                 i = index;
                 return true;
               }
+              return false;
             });
 
           if (i!=-1) {
