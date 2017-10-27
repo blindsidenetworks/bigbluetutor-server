@@ -17,21 +17,7 @@ deepstreamClient.login({
 
 var createMeeting = require('./meeting.js');
 
-var users = {};
-var dataRecord;
-
-var https = require('https');
-
-function authenticate(auth) {
-  console.log(auth);
-  console.log(users);
-  if (auth && auth.username && auth.password && users[auth.username] === auth.password) {
-    return true;
-  }
-  return false;
-}
-
-dataRecord = deepstreamClient.record.getRecord('data')
+var dataRecord = deepstreamClient.record.getRecord('data');
 //HARD CODED CATEGORIES FOR NOW HERE
 dataRecord.set('categories',{
   'Language':['English','French','Spanish', 'Italian', 'German','Mandarin','Japanese','Arabic','Russian', 'Latin'],
@@ -48,11 +34,13 @@ deepstreamClient.event.listen('createMeeting/.*/.*', function(match, isSubscribe
 
 deepstreamClient.rpc.provide('changeDescription', (data, response) => {
   var username = data.username;
-  var userRecord = deepstreamClient.record.getRecord('user/'+username);
-  var user = userRecord.get();
+  deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
+  {
+    var user = userRecord.get();
 
-  user.description = data.description;
-  userRecord.set(user)
+    user.description = data.description;
+    userRecord.set(user)
+  });
 });
 
 deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
@@ -200,8 +188,9 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
 
 deepstreamClient.rpc.provide('registerTutor', (data, response) => {
   console.log("registerTutor");
-    var username = data.username;
-    var userRecord = deepstreamClient.record.getRecord('user/'+username);
+  var username = data.username;
+  deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
+  {
     var user = userRecord.get();
 
     //check for broader subjects
@@ -210,7 +199,7 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
     var categories = data.categories;
     for(var category in categoryList) {
       if (subjects.indexOf(category) == -1) {
-        for (subcategory in categoryList[category]) {
+        for (var subcategory in categoryList[category]) {
           if(categories.indexOf(categoryList[category][subcategory]) != -1) {
             subjects.push(category);
             break;
@@ -226,6 +215,7 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       user.categories = data.categories;
       userRecord.set(user);
     }
+  });
 });
 
 deepstreamClient.rpc.provide('sendMessage', (data, response) => {
@@ -352,7 +342,6 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
             pendingMeetings: [],
             requestMeetings: [],
             messages: {},
-            profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
             meeting: ""
           };
           profileRecord.set(profile);
@@ -378,6 +367,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
             user =
             {
               username: username,
+              profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
               position: 'no position',
               description: '',
               ratings: {},

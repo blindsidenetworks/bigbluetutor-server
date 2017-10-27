@@ -2,16 +2,15 @@
   "name": "bigbluetutor",
   "version": "1.0.0",
   "description": "Backend for BigBlueTutor",
-  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:server": "node server.js",
-    "start:client": "sleep 5 && node client.js",
-    "start:provider-search": "sleep 5 && node providerSearch.js",
-    "start:all": "npm run start:server && npm run start:client && npm run start:provider-search",
+    "start:client": "node client.js",
+    "start:provider-search": "node providerSearch.js",
+    "start:all": "SLEEPTIME=3 && (sleep $SLEEPTIME && npm run start:client &) && (sleep $SLEEPTIME && npm run start:provider-search &) && npm run start:server",
     "start": "npm run start:all",
-    "db:cleartables": "sleep 2 && python3 ./scripts/cleartables.py",
-    "db:createtables": "node createtables.js && npm run db:cleartables"
+    "db:cleartables": "python3 ./scripts/cleartables.py",
+    "db:createtables": "node ./scripts/createtables.js"
   },
   "repository": {
     "type": "git",
