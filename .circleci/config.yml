@@ -30,22 +30,17 @@ jobs:
         name: RethinkDB Python driver setup
         command: |
           sudo apt-get install python3-pip
-          sudo pip3 install rethinkdb
+          sudo pip3 install rethinkdb python-dotenv
 
       - checkout
 
       - type: shell
         name: App setup
         command: |
-          cp env-dev .env
+          cp dotenv .env
           npm install
           npm run db:createtables
 
-      #- type: shell
-      #  name: Install Package Dependencies
-      #  command: |
-      #    sudo apt-get -y install curl
-      #
       #- run: npm -d start
 
       # Download and cache dependencies
@@ -68,7 +63,14 @@ jobs:
       - deploy:
           name: Build docker image
           command: |
-            echo $CI_PULL_REQUEST
-            if [ "${CIRCLE_BRANCH}" == "master" && "$CI_PULL_REQUEST" == "" ]; then
-              ./scripts/build_image_master.sh
+            if [[ $CIRCLE_BRANCH == "master" && ${CI_PULL_REQUEST} == "" ]]; then
+              echo "Docker image will be created. Enabling sudo for docker"
+              echo sudo > ~/sudo
+              ls -al
+              ls -al scripts
+              sudo ./scripts/build_image_master.sh
+            else
+              echo "Docker image won't be created. Enabling sudo for docker"
+              echo "${CIRCLE_BRANCH}"
+              echo "${CI_PULL_REQUEST}"
             fi
