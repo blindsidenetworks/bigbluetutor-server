@@ -1,8 +1,0 @@
-# RethinkDB settings
-DB_HOST=localhost
-DB_PORT=28015
-DB_NAME=deepstream
-DB_DEFAULT_TABLE=deepstream_records
-
-# Google OAuth Provider settings
-GOOGLE_CLIENT_ID=
