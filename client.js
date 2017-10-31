@@ -198,9 +198,15 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
     var user = userRecord.get();
 
     //check for broader subjects
-    var subjects = [];
     var categoryList = dataRecord.get('categories');
-    var categories = data.categories;
+    var categories = data.categories || [];
+    if(categories.length === 0)
+    {
+      response.send({});
+      return;
+    }
+    var subjects = [];
+
     for(var category in categoryList) {
       if (subjects.indexOf(category) == -1) {
         for (var subcategory in categoryList[category]) {
@@ -218,6 +224,7 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       user.subjects = subjects;
       user.categories = data.categories;
       userRecord.set(user);
+      response.send({});
     }
   });
 });
@@ -257,13 +264,13 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
   //No ID or username provided, so do nothing
   if(!data || !data.googleID || data.googleID === "")
   {
-    console.log("Not enough data provided to create user");
+    console.log("Error: Not enough data provided to create user");
     response.send({username: undefined});
     return;
   }
   if(!data.username || data.username === "")
   {
-    console.log("Invalid username");
+    console.log("Error: Invalid username");
     response.send({username: undefined, error: "Please enter a username"});
     return;
   }
@@ -283,7 +290,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
     if(hasRecord)
     {
       //Profile with given username already exists, so do nothing
-      console.log("Profile with username", username, "already exists");
+      console.log("Error: Profile with username", username, "already exists");
       response.send({username: undefined, error: "This username is already in use"});
       return;
     }
@@ -300,7 +307,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
       if(hasRecord)
       {
         //User with given username already exists, so do nothing
-        console.log("User with username", username, "already exists");
+        console.log("Error: User with username", username, "already exists");
         response.send({username: undefined, error: "This username is already in use"});
         return;
       }
@@ -315,7 +322,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
         }
         if(hasRecord)
         {
-            console.log("Auth record with username", username, "already exists");
+            console.log("Error: Auth record with username", username, "already exists");
             response.send({username: undefined, error: "An error occurred. Please try again"});
             return;
         }
@@ -333,7 +340,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
           //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's profile information
           if(profile.username)
           {
-            console.log("Error: profile record with matching username already exists");
+            console.log("Error: Profile record with matching username already exists");
             response.send({username: undefined, error: "This username is already in use"});
             return;
           }
@@ -363,7 +370,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
             //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
             if(user.username)
             {
-              console.log("Error: user record with matching username already exists");
+              console.log("Error: User record with matching username already exists");
               response.send({username: undefined, error: "This username is already in use"});
               return;
             }
@@ -392,7 +399,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
               //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
               if(auth.username)
               {
-                console.log("Error: auth record with matching username already exists");
+                console.log("Error: Auth record with matching username already exists");
                 response.send({username: undefined, error: "This username is already in use"});
                 return;
               }

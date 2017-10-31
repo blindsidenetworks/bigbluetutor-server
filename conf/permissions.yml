@@ -27,4 +27,4 @@ rpc:
     request: "user.data.role === 'server'"
   "registerTutor":
     provide: "user.data.role === 'server'"
-    request: "user.id === data.username"
+    request: "user.id === data.username || user.data.role === 'server'"
