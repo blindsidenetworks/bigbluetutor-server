@@ -3,6 +3,8 @@ Test cases:
 Success
 User is already a tutor
 User does not exist
+
+Also tests changeDescription
 */
 
 var deepstream = require("deepstream.io-client-js");
@@ -16,7 +18,7 @@ client.login({username: "server", password: "sp"}, (success, data) =>
 {
   if(!success) {return;}
 
-  console.log(data);
+  console.log("clientData:\n" + data);
 
   //Success
   client.rpc.make("registerTutor", {username: "test", categories: ["French", "Japanese", "French", "Latin", "Calculus"]}, (error, result) =>
@@ -50,6 +52,18 @@ client.login({username: "server", password: "sp"}, (success, data) =>
         }
 
         console.log(result);
+
+        //Test changeDescription
+        client.rpc.make("changeDescription", {username: "test", description: "Hello, I am a BigBlueTutor user."}, (error, result) =>
+        {
+          if(error)
+          {
+            console.log(error)
+            return;
+          }
+
+          console.log(result);
+        });
       });
     });
   });

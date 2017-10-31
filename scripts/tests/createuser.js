@@ -18,7 +18,7 @@ client.login({username: "server", password: "sp"}, (success, data) =>
 {
   if(!success) {return;}
 
-  console.log(data);
+  console.log("clientData:\n" + data);
 
   //Success
   client.rpc.make("createUser", {username: "test", googleID: -1}, (error, result) =>
