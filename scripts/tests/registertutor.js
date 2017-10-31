@@ -17,7 +17,7 @@ client.login({username: "server", password: "sp"}, (success, data) =>
   if(!success) return;
 
   //Success
-  client.rpc.make("registerTutor", {username: "test", categories: ["French", "Japanese", "French", "Latin", "Esperanto", "Calculus"]}, (error, result) =>
+  client.rpc.make("registerTutor", {username: "test", categories: ["French", "Japanese", "French", "Latin", "Calculus"]}, (error, result) =>
   {
     if(error)
     {

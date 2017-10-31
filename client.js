@@ -30,6 +30,7 @@ dataRecord.set('categories',{
 
 deepstreamClient.event.listen('createMeeting/.*/.*', function(match, isSubscribed, response) {
   console.log('meeting create');
+  response.send({});
 });
 
 deepstreamClient.rpc.provide('changeDescription', (data, response) => {
@@ -39,7 +40,8 @@ deepstreamClient.rpc.provide('changeDescription', (data, response) => {
     var user = userRecord.get();
 
     user.description = data.description;
-    userRecord.set(user)
+    userRecord.set(user);
+    response.send({});
   });
 });
 
@@ -132,6 +134,7 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
       });
     }
   });
+  response.send({});
 });
 
 deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
@@ -188,6 +191,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
       });
     }
   });
+  response.send({});
 });
 
 deepstreamClient.rpc.provide('registerTutor', (data, response) => {
@@ -220,11 +224,11 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
 
 
     //make user tutor
-    //if (!user.tutor)
+    if (!user.tutor)
     {
       user.tutor = true;
       user.subjects = subjects;
-      user.categories = data.categories;
+      user.categories = categories;
       userRecord.set(user);
       response.send({});
     }
