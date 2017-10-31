@@ -16,7 +16,7 @@ var client = deepstream("localhost:6020").on("error", (error) =>
 
 client.login({username: "server", password: "sp"}, (success, data) =>
 {
-  if(!success) return;
+  if(!success) {return;}
 
   console.log(data);
 
