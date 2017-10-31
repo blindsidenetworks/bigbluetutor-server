@@ -28,11 +28,6 @@ dataRecord.set('categories',{
   'Arts':['Abstract Art', 'Art History', 'Visual Arts']
 });
 
-deepstreamClient.event.listen('createMeeting/.*/.*', function(match, isSubscribed, response) {
-  console.log('meeting create');
-  response.send({});
-});
-
 deepstreamClient.rpc.provide('changeDescription', (data, response) => {
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
@@ -46,7 +41,6 @@ deepstreamClient.rpc.provide('changeDescription', (data, response) => {
 });
 
 deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
-  console.log("meeting request");
   var contact = data.contact;
   var client = data.client;
   var data = data.data;
@@ -55,6 +49,8 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
     if (has) {
       var record = deepstreamClient.record.getRecord("profile/"+contact);
       var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
+      var userRecord = deepstreamClient.record.getRecord("user/"+contact);
+      var clientUserRecord = deepstreamClient.record.getRecord("user/"+client);
       record.whenReady(() => {
         clientRecord.whenReady(() => {
           var pendingMeetings = record.get('pendingMeetings');
@@ -67,7 +63,7 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
           if (clientPendingMeetings.indexOf(contact) != -1) {
 
             var i = -1;
-            messages[client].some(function(item, index) {
+            messages[client].messages.some(function(item, index) {
               if(item.active) {
                 i = index;
                 return true;
@@ -76,12 +72,12 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
             });
 
             if (i!=-1) {
-              messages[client].splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
+              messages[client].messages.splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
               record.set('messages', messages);
             }
 
             i = -1;
-            clientMessages[contact].some(function(item, index) {
+            clientMessages[contact].messages.some(function(item, index) {
               if(item.active) {
                 i = index;
                 return true;
@@ -90,7 +86,7 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
             });
 
             if (i!=-1) {
-              clientMessages[contact].splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
+              clientMessages[contact].messages.splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
               clientRecord.set('messages', clientMessages);
             }
 
@@ -107,11 +103,13 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
               clientRecord.set('meeting', meetingUrl);
             });
           } else if (pendingMeetings.indexOf(client) == -1) {
+            userRecord.whenReady(() => {
+            clientUserRecord.whenReady(() => {
             if (!messages[client]) {
-              messages[client] = [];
+              messages[client] = {pic: clientUserRecord.get('profilePic'),messages:[]};
             }
             if (!clientMessages[contact]) {
-              clientMessages[contact] = [];
+              clientMessages[contact] = {pic: userRecord.get('profilePic'),messages:[]};
             }
 
             if (!messages[client]) {
@@ -121,14 +119,16 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
               clientMessages[contact] = [];
             }
 
-            messages[client].push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: data});
-            clientMessages[contact].push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: data});
+            messages[client].messages.push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: data});
+            clientMessages[contact].messages.push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: data});
             record.set('messages',messages);
             clientRecord.set('messages',clientMessages);
             pendingMeetings.push(client);
             clientRequestMeetings.push(contact);
             record.set('pendingMeetings', pendingMeetings);
             clientRecord.set('pendingMeetings', clientPendingMeetings);
+            });
+            });
           }
         });
       });
@@ -156,7 +156,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
           var clientMessages = clientRecord.get('messages');
 
           var i = -1;
-          messages[client].some(function(item, index) {
+          messages[client].messages.some(function(item, index) {
               if(item.active) {
                 i = index;
                 return true;
@@ -165,12 +165,12 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
             });
 
           if (i!=-1) {
-            messages[client].splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
+            messages[client].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
             record.set('messages', messages);
           }
 
           i = -1;
-          clientMessages[contact].some(function(item, index) {
+          clientMessages[contact].messages.some(function(item, index) {
               if(item.active) {
                 i = index;
                 return true;
@@ -179,7 +179,7 @@ deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
             });
 
           if (i!=-1) {
-            clientMessages[contact].splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
+            clientMessages[contact].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
             clientRecord.set('messages', clientMessages);
           }
 
@@ -243,18 +243,22 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
     if (has) {
       var record = deepstreamClient.record.getRecord("profile/"+contact);
       var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
+      //profilePicture
+      var userRecord = deepstreamClient.record.getRecord('user/'+client);
+      userRecord.whenReady(() => {
       record.whenReady(() => {
         clientRecord.whenReady(() => {
           var messages = record.get('messages');
           if (!messages){
-            messages = {client:[{user:client,message:message, special: false}]}
+            messages = {client:{pic: userRecord.get('profilePic'), messages:[{user:client,message:message, special: false}]}}
           }else if(messages[client]) {
-            messages[client].push({user:client,message:message, special: false})
+            messages[client].messages.push({user:client,message:message, special: false})
           }else {
-            messages[client] = [{user:client,message:message, special: false}]
+            messages[client] = {pic: userRecord.get('profilePic'),messages: [{user:client,message:message, special: false}]}
           }
           record.set('messages',messages);
         });
+     });
      });
     }
   });

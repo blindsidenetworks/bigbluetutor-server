@@ -7,10 +7,9 @@ jobs:
   build:
     docker:
       - image: circleci/node:7.10
-
     working_directory: ~/repo
-
     steps:
+      # Dependences: DB
       - type: shell
         name: Install RethinkDB
         command: |
@@ -25,42 +24,66 @@ jobs:
           echo "no-http-admin" | sudo tee --append /etc/rethinkdb/instances.d/instance1.conf
           sudo /etc/init.d/rethinkdb restart
           sleep 5
-
+      # Dependences: DB drivers
       - type: shell
         name: RethinkDB Python driver setup
         command: |
           sudo apt-get install python3-pip
-          sudo pip3 install rethinkdb
-
+          sudo pip3 install rethinkdb python-dotenv
+      # Checkout
       - checkout
-
+      # App Setup
       - type: shell
         name: App setup
         command: |
-          cp env-dev .env
+          cp dotenv .env
           npm install
           npm run db:createtables
-
-      #- type: shell
-      #  name: Install Package Dependencies
-      #  command: |
-      #    sudo apt-get -y install curl
-      #
-      #- run: npm -d start
-
       # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "package.json" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
       - run: yarn install
-
+      # Cache
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-
-      # run tests!
+      # Run tests!
       #- run: yarn test
+      ##########################################################################
+      ## If all test passed                                                   ##
+      ##########################################################################
+      # Setup docker
+      - type: setup-docker-engine
+      # Install docker client
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.05.0-ce"
+            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv /tmp/docker/* /usr/bin
+      # Verify Docker Works
+      - type: shell
+        name: Verify Docker Works
+        command: |
+          docker --version
+          docker run hello-world
+      # Finally build the image and deploy
+      - deploy:
+          name: Build docker image
+          command: |
+            if [[ $CIRCLE_BRANCH == "master" && ${CI_PULL_REQUEST} == "" ]]; then
+              echo "Docker image will be created. Enabling sudo for docker"
+              echo 'Building image'
+              docker build -f Dockerfile.prod -t blindsidenetwks/bigbluetutor-server:latest .
+              ./scripts/build_image.sh
+            else
+              echo "Docker image won't be created. Enabling sudo for docker"
+              echo "${CIRCLE_BRANCH}"
+              echo "${CI_PULL_REQUEST}"
+            fi
