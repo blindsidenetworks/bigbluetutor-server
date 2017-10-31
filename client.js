@@ -262,7 +262,7 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
      });
     }
   });
-  repsonse.send({});
+  response.send({});
 });
 
 //Create a new user record with a new username

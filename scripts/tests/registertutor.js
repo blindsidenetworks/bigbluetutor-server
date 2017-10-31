@@ -16,6 +16,8 @@ client.login({username: "server", password: "sp"}, (success, data) =>
 {
   if(!success) return;
 
+  console.log(data);
+
   //Success
   client.rpc.make("registerTutor", {username: "test", categories: ["French", "Japanese", "French", "Latin", "Calculus"]}, (error, result) =>
   {
