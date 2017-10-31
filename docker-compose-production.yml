@@ -3,15 +3,17 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
+    ports:
+     - "6020:6020"
     env_file:
       - .env
     volumes:
      - '.:/usr/src/app'
     command: npm start --production
-    depends_on:
-      - deepstreamio
-  deepstreamio:
-    image: deepstreamio/deepstream.io
-    ports:
-     - "6020:6020"
+#    depends_on:
+#      - deepstreamio
+#  deepstreamio:
+#    image: deepstreamio/deepstream.io
+#    ports:
+#     - "6020:6020"

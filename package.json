@@ -7,7 +7,7 @@
     "start:server": "node server.js",
     "start:client": "node client.js",
     "start:provider-search": "node providerSearch.js",
-    "start:all": "SLEEPTIME=3 && (sleep $SLEEPTIME && npm run start:client &) && (sleep $SLEEPTIME && npm run start:provider-search &) && npm run start:server",
+    "start:all": "npm run start:server & (sleep 4 && npm run start:client) & (sleep 6 && npm run start:provider-search)",
     "start": "npm run start:all",
     "db:cleartables": "python3 ./scripts/cleartables.py",
     "db:createtables": "node ./scripts/createtables.js"
