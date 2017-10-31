@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo 'Building image'
-docker build -f Dockerfile.prod -t blindsidenetwks/bigbluetutor-server:latest .
+docker build -f Dockerfile -t blindsidenetwks/bigbluetutor-server:latest .
 
 echo 'Loging in to DockerHub'
 docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}

@@ -4,25 +4,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-     - 6020:6020
     volumes:
      - '.:/usr/src/app'
-#     - '.:/app/folder:/app'
     command: npm start --development
     depends_on:
       - rethinkdb
+      - deepstreamio
   rethinkdb:
     image: rethinkdb
     ports:
       - "8080:8080"
       - "28015:28015"
       - "29015:29015"
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.rethinkdb
-#    ports:
-#     - "28015:28015"
-#    volumes:
-#     - /data:/data
-#    command: rethinkdb --bind all --data /data
+  deepstreamio:
+    image: deepstreamio/deepstream.io
+    ports:
+     - "6020:6020"
