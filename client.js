@@ -198,18 +198,18 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
     var user = userRecord.get();
 
     //check for broader subjects
+    var subjects = [];
     var categoryList = dataRecord.get('categories');
-    var categories = data.categories || [];
+    var categories = Array.from(new Set(data.categories || []));
     if(categories.length === 0)
     {
       response.send({});
       return;
     }
-    var subjects = [];
 
     for(var category in categoryList) {
-      if (subjects.indexOf(category) == -1) {
-        for (var subcategory in categoryList[category]) {
+      if (categoryList.hasOwnProperty(category) && subjects.indexOf(category) == -1) {
+        for (var subcategory = 0; subcategory < categoryList[category].length; ++subcategory) {
           if(categories.indexOf(categoryList[category][subcategory]) != -1) {
             subjects.push(category);
             break;
@@ -218,8 +218,10 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       }
     }
 
+
     //make user tutor
-    if (!user.tutor) {
+    //if (!user.tutor)
+    {
       user.tutor = true;
       user.subjects = subjects;
       user.categories = data.categories;
@@ -252,6 +254,7 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
      });
     }
   });
+  repsonse.send({});
 });
 
 //Create a new user record with a new username
