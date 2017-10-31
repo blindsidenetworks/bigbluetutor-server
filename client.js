@@ -219,7 +219,6 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       }
     }
 
-
     //make user tutor
     if (!user.tutor)
     {
