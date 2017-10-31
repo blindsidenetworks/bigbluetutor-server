@@ -47,8 +47,7 @@ provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, respon
     subjectTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
-  }else {
-
+    response.accept();
   }
 });
 
@@ -57,8 +56,7 @@ provider.event.listen('category/tutor/.*', function(subject, isSubscribed, respo
     categoryTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
-  }else {
-
+    response.accept();
   }
 });
 
@@ -73,11 +71,7 @@ function subjectTutorSubscribe(category, callback) {
         if(err) throw err;
         cursor.toArray(function(err, result) {
           if (err) throw err;
-          var tutors = [];
-          for (var i in result) {
-            tutors.push(result[i]);
-          }
-          callback(tutors, category);
+          callback(result, category);
         });
       });
    });
@@ -95,11 +89,7 @@ function categoryTutorSubscribe(category, callback) {
         if(err) throw err;
         cursor.toArray(function(err, result) {
           if (err) throw err;
-          var tutors = [];
-          for (var i in result) {
-            tutors.push(result[i]);
-          }
-          callback(tutors, category);
+          callback(result, category);
         });
       });
    });
@@ -136,11 +126,7 @@ function subjectTutor(subject, callback) {
     if (err) throw err;
     cursor.toArray(function(err, result) {
       if (err) throw err;
-      var tutors = [];
-      for (var i in result) {
-        tutors.push(result[i]);
-      }
-      callback(tutors);
+      callback(result);
     });
   });
 }
@@ -151,11 +137,7 @@ function categoryTutor(category, callback) {
     if (err) throw err;
     cursor.toArray(function(err, result) {
       if (err) throw err;
-      var tutors = [];
-      for (var i in result) {
-        tutors.push(result[i]);
-      }
-      callback(tutors);
+      callback(result);
     });
   });
 }
