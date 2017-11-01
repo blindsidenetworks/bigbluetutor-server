@@ -1,5 +1,6 @@
 const deepstream = require('deepstream.io-client-js');
-const createUser = require('./rpc/createuser');
+
+const rpcs = ["./rpc/createuser", "./rpc/meeting"];
 
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
@@ -16,18 +17,19 @@ deepstreamClient.login({
   console.log("Data:", data);
 });
 
-var createMeeting = require('./meeting.js');
-
-var dataRecord = deepstreamClient.record.getRecord('data');
-//HARD CODED CATEGORIES FOR NOW HERE
-dataRecord.set('categories',{
-  'Language':['English','French','Spanish', 'Italian', 'German','Mandarin','Japanese','Arabic','Russian', 'Latin'],
-  'Math':['Algebra','Calculus','Pre-Calculus','Geometry','Trigonometry'],
-  'Business':['Accounting','Business Law', 'Business Management', 'Economics', 'Entrepreneurship', 'Finance', 'Marketing', 'Tax'],
-  'Science':['Astronomy', 'Biology', 'Chemistry', 'Physics'],
-  'Social Sciences':['Anthropology', 'Geography', 'History'],
-  'Arts':['Abstract Art', 'Art History', 'Visual Arts']
+deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
+{
+  //HARD CODED CATEGORIES FOR NOW HERE
+  dataRecord.set('categories',{
+    'Language':['English','French','Spanish', 'Italian', 'German','Mandarin','Japanese','Arabic','Russian', 'Latin'],
+    'Math':['Algebra','Calculus','Pre-Calculus','Geometry','Trigonometry'],
+    'Business':['Accounting','Business Law', 'Business Management', 'Economics', 'Entrepreneurship', 'Finance', 'Marketing', 'Tax'],
+    'Science':['Astronomy', 'Biology', 'Chemistry', 'Physics'],
+    'Social Sciences':['Anthropology', 'Geography', 'History'],
+    'Arts':['Abstract Art', 'Art History', 'Visual Arts']
+  });
 });
+
 
 deepstreamClient.rpc.provide('changeDescription', (data, response) => {
   var username = data.username;
@@ -38,197 +40,46 @@ deepstreamClient.rpc.provide('changeDescription', (data, response) => {
   });
 });
 
-deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
-  var contact = data.contact;
-  var client = data.client;
-  var data = data.data;
-  if (client === contact) { return }
-  deepstreamClient.record.has("profile/"+contact, (err, has) => {
-    if (has) {
-      var record = deepstreamClient.record.getRecord("profile/"+contact);
-      var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
-      var userRecord = deepstreamClient.record.getRecord("user/"+contact);
-      var clientUserRecord = deepstreamClient.record.getRecord("user/"+client);
-      record.whenReady(() => {
-        clientRecord.whenReady(() => {
-          var pendingMeetings = record.get('pendingMeetings');
-          var clientPendingMeetings = clientRecord.get('pendingMeetings');
-          var requestMeetings = record.get('requestMeetings');
-          var clientRequestMeetings = clientRecord.get('requestMeetings');
-          var messages = record.get('messages');
-          var clientMessages = clientRecord.get('messages');
-
-          if (clientPendingMeetings.indexOf(contact) != -1) {
-
-            var i = -1;
-            messages[client].messages.some(function(item, index) {
-              if(item.active) {
-                i = index;
-                return true;
-              }
-              return false;
-            });
-
-            if (i!=-1) {
-              messages[client].messages.splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
-              record.set('messages', messages);
-            }
-
-            i = -1;
-            clientMessages[contact].messages.some(function(item, index) {
-              if(item.active) {
-                i = index;
-                return true;
-              }
-              return false;
-            });
-
-            if (i!=-1) {
-              clientMessages[contact].messages.splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: false});
-              clientRecord.set('messages', clientMessages);
-            }
-
-            clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
-            requestMeetings.splice(requestMeetings.indexOf(client), 1);
-            record.set('pendingMeetings', pendingMeetings);
-            clientRecord.set('pendingMeetings', clientPendingMeetings);
-
-            //create meeting here
-            createMeeting(contact + '/' + client, contact, function(meetingUrl) {
-              record.set('meeting', meetingUrl);
-            });
-            createMeeting(contact + '/' + client, client, function(meetingUrl) {
-              clientRecord.set('meeting', meetingUrl);
-            });
-          } else if (pendingMeetings.indexOf(client) == -1) {
-            userRecord.whenReady(() => {
-            clientUserRecord.whenReady(() => {
-            if (!messages[client]) {
-              messages[client] = {pic: clientUserRecord.get('profilePic'),messages:[]};
-            }
-            if (!clientMessages[contact]) {
-              clientMessages[contact] = {pic: userRecord.get('profilePic'),messages:[]};
-            }
-
-            if (!messages[client]) {
-              messages[client] = [];
-            }
-            if (!clientMessages[contact]) {
-              clientMessages[contact] = [];
-            }
-
-            messages[client].messages.push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: data});
-            clientMessages[contact].messages.push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: data});
-            record.set('messages',messages);
-            clientRecord.set('messages',clientMessages);
-            pendingMeetings.push(client);
-            clientRequestMeetings.push(contact);
-            record.set('pendingMeetings', pendingMeetings);
-            clientRecord.set('pendingMeetings', clientPendingMeetings);
-            });
-            });
-          }
-        });
-      });
-    }
-  });
-  response.send({});
-});
-
-deepstreamClient.rpc.provide('declineMeeting', (data, response) => {
-  var contact = data.contact;
-  var client = data.client;
-  // var data = data.data;
-  if (client === contact) { return }
-  deepstreamClient.record.has("profile/"+contact, (err, has) => {
-    if (has) {
-      var record = deepstreamClient.record.getRecord("profile/"+contact);
-      var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
-      record.whenReady(() => {
-        clientRecord.whenReady(() => {
-          var pendingMeetings = record.get('pendingMeetings');
-          var clientPendingMeetings = clientRecord.get('pendingMeetings');
-          var requestMeetings = record.get('requestMeetings');
-          // var clientRequestMeetings = clientRecord.get('requestMeetings');
-          var messages = record.get('messages');
-          var clientMessages = clientRecord.get('messages');
-
-          var i = -1;
-          messages[client].messages.some(function(item, index) {
-              if(item.active) {
-                i = index;
-                return true;
-              }
-              return false;
-            });
-
-          if (i!=-1) {
-            messages[client].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
-            record.set('messages', messages);
-          }
-
-          i = -1;
-          clientMessages[contact].messages.some(function(item, index) {
-              if(item.active) {
-                i = index;
-                return true;
-              }
-              return false;
-            });
-
-          if (i!=-1) {
-            clientMessages[contact].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
-            clientRecord.set('messages', clientMessages);
-          }
-
-          clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
-          requestMeetings.splice(requestMeetings.indexOf(client), 1);
-          record.set('pendingMeetings', pendingMeetings);
-          clientRecord.set('pendingMeetings', clientPendingMeetings);
-        });
-      });
-    }
-  });
-  response.send({});
-});
-
 deepstreamClient.rpc.provide('registerTutor', (data, response) => {
   console.log("registerTutor");
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
   {
-    var user = userRecord.get();
-
-    //check for broader subjects
-    var subjects = [];
-    var categoryList = dataRecord.get('categories');
-    var categories = Array.from(new Set(data.categories || []));
-    if(categories.length === 0)
+    deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
     {
-      response.send({});
-      return;
-    }
+      var user = userRecord.get();
 
-    for(var category in categoryList) {
-      if (categoryList.hasOwnProperty(category) && subjects.indexOf(category) == -1) {
-        for (var subcategory = 0; subcategory < categoryList[category].length; ++subcategory) {
-          if(categories.indexOf(categoryList[category][subcategory]) != -1) {
-            subjects.push(category);
-            break;
+      //check for broader subjects
+      var subjects = [];
+      var categoryList = dataRecord.get('categories');
+      var categories = Array.from(new Set(data.categories || []));
+      if(categories.length === 0)
+      {
+        response.send({});
+        return;
+      }
+
+      for(var category in categoryList) {
+        if (categoryList.hasOwnProperty(category) && subjects.indexOf(category) == -1) {
+          for (var subcategory = 0; subcategory < categoryList[category].length; ++subcategory) {
+            if(categories.indexOf(categoryList[category][subcategory]) != -1) {
+              subjects.push(category);
+              break;
+            }
           }
         }
       }
-    }
 
-    //make user tutor
-    if (!user.tutor)
-    {
-      user.tutor = true;
-      user.subjects = subjects;
-      user.categories = categories;
-      userRecord.set(user);
-    }
-    response.send({});
+      //make user tutor
+      if (!user.tutor)
+      {
+        user.tutor = true;
+        user.subjects = subjects;
+        user.categories = categories;
+        userRecord.set(user);
+      }
+      response.send({});
+    });
   });
 });
 
@@ -262,4 +113,7 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
   response.send({});
 });
 
-createUser.provide(deepstreamClient);
+for(var i = 0; i < rpcs.length; ++i)
+{
+  require(rpcs[i]).provide(deepstreamClient);
+}
