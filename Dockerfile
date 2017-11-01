@@ -1,5 +1,7 @@
-FROM node:latest
-ENV APP_HOME=/usr/src/app
+#FROM beevelop/nodejs-python:latest
+FROM node:boron
+#FROM node:latest
+ENV APP_HOME=/usr/src/app/
 
 # App dependences
 RUN apt-get update -qq && apt-get install -y build-essential libpq-dev python3 python3-pip
@@ -10,10 +12,13 @@ RUN pip3 install --upgrade pip
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
 
+# Install app dependencies
+COPY package.json $APP_HOME
+COPY package.json package-lock.json $APP_HOME
+RUN npm install
+
 # Bundle app source
 ADD . $APP_HOME
-
-RUN npm install
 
 EXPOSE 6020
 #CMD ["npm start"]

@@ -1,19 +1,20 @@
 version: '2'
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: blindsidenetwks/bigbluetutor-server:latest
     ports:
      - "6020:6020"
     env_file:
       - .env
     volumes:
      - '.:/usr/src/app'
+     - '/usr/src/app/node_modules'
     command: npm start --production
-#    depends_on:
-#      - deepstreamio
-#  deepstreamio:
-#    image: deepstreamio/deepstream.io
-#    ports:
-#     - "6020:6020"
+    depends_on:
+      - rethinkdb
+  rethinkdb:
+    image: rethinkdb
+    ports:
+      - "8080:8080"
+      - "28015:28015"
+      - "29015:29015"
