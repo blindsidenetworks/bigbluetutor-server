@@ -269,27 +269,27 @@ function getUserDataError(profile, user, auth)
     console.log("Error getting the profile record");
     "An error occurred. Please try again";
   }
-  if(profile.username)
+  else if(profile.username)
   {
     console.log("Error: Profile record with matching username already exists");
     return "This username is already in use"
   }
-  if(!user)
+  else if(!user)
   {
     console.log("Error getting the user record");
     return "An error occurred. Please try again"
   }
-  if(user.username)
+  else if(user.username)
   {
     console.log("Error: User record with matching username already exists");
     return "This username is already in use"
   }
-  if(!auth)
+  else if(!auth)
   {
     console.log("Error getting the auth record");
     return "An error occurred. Please try again"
   }
-  if(auth.username)
+  else if(auth.username)
   {
     console.log("Error: Auth record with matching username already exists");
     return "This username is already in use"
@@ -332,7 +332,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
       response.send({username: undefined, error: "An error occurred. Please try again"});
       return;
     }
-    if(hasRecord)
+    else if(hasRecord)
     {
       //Profile with given username already exists, so do nothing
       console.log("Error: Profile with username", username, "already exists");
@@ -349,7 +349,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
         response.send({username: undefined, error: "An error occurred. Please try again"});
         return;
       }
-      if(hasRecord)
+      else if(hasRecord)
       {
         //User with given username already exists, so do nothing
         console.log("Error: User with username", username, "already exists");
@@ -365,7 +365,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
             response.send({username: undefined, error: "An error occurred. Please try again"});
             return;
         }
-        if(hasRecord)
+        else if(hasRecord)
         {
             console.log("Error: Auth record with username", username, "already exists");
             response.send({username: undefined, error: "An error occurred. Please try again"});
