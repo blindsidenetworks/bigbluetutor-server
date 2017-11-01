@@ -71,7 +71,7 @@ server.set("authenticationHandler",
               console.log("Error: more than one user with given Google ID");
               callback(null, {username: "Access denied"});
             }
-            else if("username" in authData && authData.username !== undefined && authData.username !== null)
+            else if(authData.username)
             {
               //No user found, so user needs to set a username to create an account
               //If a username was requested, attempt to create the account. Otherwise, do not log in
@@ -106,7 +106,6 @@ server.set("authenticationHandler",
             }
           });
         });
-
       });
     }
     else if(connectionData.remoteAddress === "127.0.0.1" && authData.password === "sp")

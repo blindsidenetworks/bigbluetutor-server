@@ -268,6 +268,9 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
   console.log("Creating user");
   console.log(data);
 
+  var googleID = data.googleID;
+  var username = data.username;
+
   //No ID or username provided, so do nothing
   if(!data || !data.googleID || data.googleID === "")
   {
@@ -282,8 +285,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
     return;
   }
 
-  var googleID = data.googleID;
-  var username = data.username.toLowerCase();
+  username = username.toLowerCase();
 
   //Do not create a new user if a profile record with the given username already exists
   deepstreamClient.record.has("profile/" + username, (error, hasRecord) =>
@@ -336,66 +338,42 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
 
         deepstreamClient.record.getRecord("profile/" + username).whenReady(profileRecord =>
         {
-          var profile = profileRecord.get();
-
-          if(!profile)
-          {
-            console.log("Error getting the profile record");
-            response.send({username: undefined, error: "An error occurred. Please try again"});
-            return;
-          }
-          //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's profile information
-          if(profile.username)
-          {
-            console.log("Error: Profile record with matching username already exists");
-            response.send({username: undefined, error: "This username is already in use"});
-            return;
-          }
-
-          profile =
-          {
-            username: username,
-            onboardingComplete: false,
-            stars: [],
-            pendingMeetings: [],
-            requestMeetings: [],
-            messages: {},
-            meeting: ""
-          };
-          profileRecord.set(profile);
-
           deepstreamClient.record.getRecord("user/" + username).whenReady(userRecord =>
           {
-            var user = userRecord.get();
-
-            if(!user)
-            {
-              console.log("Error getting the profile record");
-              response.send({username: undefined, error: "An error occurred. Please try again"});
-              return;
-            }
-            //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
-            if(user.username)
-            {
-              console.log("Error: User record with matching username already exists");
-              response.send({username: undefined, error: "This username is already in use"});
-              return;
-            }
-
-            user =
-            {
-              username: username,
-              profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
-              position: 'no position',
-              description: '',
-              ratings: {},
-              tutor: false,
-            };
-            userRecord.set(user);
-
             deepstreamClient.record.getRecord("auth/" + username).whenReady(authRecord =>
             {
+              var profile = profileRecord.get();
+              var user = userRecord.get();
               var auth = authRecord.get();
+
+              //Check for errors getting the records, or if a user already exists
+              if(!profile)
+              {
+                console.log("Error getting the profile record");
+                response.send({username: undefined, error: "An error occurred. Please try again"});
+                return;
+              }
+
+              if(profile.username)
+              {
+                console.log("Error: Profile record with matching username already exists");
+                response.send({username: undefined, error: "This username is already in use"});
+                return;
+              }
+
+              if(!user)
+              {
+                console.log("Error getting the user record");
+                response.send({username: undefined, error: "An error occurred. Please try again"});
+                return;
+              }
+
+              if(user.username)
+              {
+                console.log("Error: User record with matching username already exists");
+                response.send({username: undefined, error: "This username is already in use"});
+                return;
+              }
 
               if(!auth)
               {
@@ -403,13 +381,37 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
                 response.send({username: undefined, error: "An error occurred. Please try again"});
                 return;
               }
-              //If the record already exists with a valid username or Google ID, do nothing. Otherwise, fill it with the user's information
+
               if(auth.username)
               {
                 console.log("Error: Auth record with matching username already exists");
                 response.send({username: undefined, error: "This username is already in use"});
                 return;
               }
+
+              //No errors, so create user
+              profile =
+              {
+                username: username,
+                onboardingComplete: false,
+                stars: [],
+                pendingMeetings: [],
+                requestMeetings: [],
+                messages: {},
+                meeting: ""
+              };
+              profileRecord.set(profile);
+
+              user =
+              {
+                username: username,
+                profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
+                position: 'no position',
+                description: '',
+                ratings: {},
+                tutor: false,
+              };
+              userRecord.set(user);
 
               auth =
               {
@@ -422,6 +424,7 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
             }); //Get auth
           }); //Get user
         }); //Get profile
+
       }); //Has auth
     }); //Has user
   }); //Has profile
