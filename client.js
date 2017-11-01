@@ -261,6 +261,42 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
   response.send({});
 });
 
+function getUserDataError(profile, user, auth)
+{
+  //Check for errors getting the records, or if a user already exists
+  if(!profile)
+  {
+    console.log("Error getting the profile record");
+    "An error occurred. Please try again";
+  }
+  if(profile.username)
+  {
+    console.log("Error: Profile record with matching username already exists");
+    return "This username is already in use"
+  }
+  if(!user)
+  {
+    console.log("Error getting the user record");
+    return "An error occurred. Please try again"
+  }
+  if(user.username)
+  {
+    console.log("Error: User record with matching username already exists");
+    return "This username is already in use"
+  }
+  if(!auth)
+  {
+    console.log("Error getting the auth record");
+    return "An error occurred. Please try again"
+  }
+  if(auth.username)
+  {
+    console.log("Error: Auth record with matching username already exists");
+    return "This username is already in use"
+  }
+  return null;
+}
+
 //Create a new user record with a new username
 //Also creates a profile record. The profile record stores private user data, while the user record stores public data
 deepstreamClient.rpc.provide("createUser", (data, response) =>
@@ -274,8 +310,8 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
   //No ID or username provided, so do nothing
   if(!data || !data.googleID || data.googleID === "")
   {
-    console.log("Error: Not enough data provided to create user");
-    response.send({username: undefined});
+    console.log("Error: No Google ID provided");
+    response.send({username: undefined, error: "No Google ID provided"});
     return;
   }
   if(!data.username || data.username === "")
@@ -346,46 +382,10 @@ deepstreamClient.rpc.provide("createUser", (data, response) =>
               var user = userRecord.get();
               var auth = authRecord.get();
 
-              //Check for errors getting the records, or if a user already exists
-              if(!profile)
+              var userError = getUserDataError(profile, user, auth);
+              if(userError)
               {
-                console.log("Error getting the profile record");
-                response.send({username: undefined, error: "An error occurred. Please try again"});
-                return;
-              }
-
-              if(profile.username)
-              {
-                console.log("Error: Profile record with matching username already exists");
-                response.send({username: undefined, error: "This username is already in use"});
-                return;
-              }
-
-              if(!user)
-              {
-                console.log("Error getting the user record");
-                response.send({username: undefined, error: "An error occurred. Please try again"});
-                return;
-              }
-
-              if(user.username)
-              {
-                console.log("Error: User record with matching username already exists");
-                response.send({username: undefined, error: "This username is already in use"});
-                return;
-              }
-
-              if(!auth)
-              {
-                console.log("Error getting the auth record");
-                response.send({username: undefined, error: "An error occurred. Please try again"});
-                return;
-              }
-
-              if(auth.username)
-              {
-                console.log("Error: Auth record with matching username already exists");
-                response.send({username: undefined, error: "This username is already in use"});
+                response.send({username: undefined, error: userError});
                 return;
               }
 
