@@ -12,7 +12,6 @@ WORKDIR $APP_HOME
 
 # Install app dependencies
 COPY package.json $APP_HOME
-COPY package.json package-lock.json $APP_HOME
 RUN npm install
 
 # Bundle app source
