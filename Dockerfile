@@ -1,6 +1,4 @@
-#FROM beevelop/nodejs-python:latest
 FROM node:boron
-#FROM node:latest
 ENV APP_HOME=/usr/src/app/
 
 # App dependences

@@ -67,12 +67,6 @@ jobs:
             sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
             sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
             sudo mv /tmp/docker/* /usr/bin
-      # Verify Docker Works
-      - type: shell
-        name: Verify Docker Works
-        command: |
-          docker --version
-          docker run hello-world
       # Finally build the image and deploy
       - deploy:
           name: Build docker image

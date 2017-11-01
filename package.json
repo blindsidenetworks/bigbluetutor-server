@@ -8,8 +8,7 @@
     "start:client": "node client.js",
     "start:provider-search": "node providerSearch.js",
     "start:all": "npm run start:server & (sleep 4 && npm run start:client) & (sleep 6 && npm run start:provider-search)",
-    "startall": "npm run start:all",
-    "start": "npm run start:server",
+    "start": "npm run start:all",
     "db:cleartables": "python3 ./scripts/cleartables.py",
     "db:createtables": "node ./scripts/createtables.js"
   },
