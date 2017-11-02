@@ -2,10 +2,8 @@ var crypto = require('crypto');
 var https = require('https');
 var dotenv = require("dotenv");
 
-var config = dotenv.config({path: "../.env"}).parsed;
-console.log(config);
-
 function createRoom(meetingId, fullName, callback) {
+  var config = dotenv.config().parsed;
   const defaultModeratorPassword = "mp";
   const defaultAttendeePassword = "ap";
   var meetingId = meetingId.split(' ').join('+');

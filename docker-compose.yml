@@ -4,11 +4,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
-     - 6020:6020
+     - "6020:6020"
     volumes:
      - '.:/usr/src/app'
-#     - '.:/app/folder:/app'
     command: npm start --development
     depends_on:
       - rethinkdb
@@ -18,11 +19,3 @@ services:
       - "8080:8080"
       - "28015:28015"
       - "29015:29015"
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.rethinkdb
-#    ports:
-#     - "28015:28015"
-#    volumes:
-#     - /data:/data
-#    command: rethinkdb --bind all --data /data
