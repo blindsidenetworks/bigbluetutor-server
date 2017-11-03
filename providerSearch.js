@@ -14,7 +14,7 @@ provider.login({
 });
 var connection = null;
 r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err, conn) {
-  if (err) {throw err;}
+  if (err) throw err;
   connection = conn;
 });
 
@@ -48,6 +48,7 @@ provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, respon
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
     response.accept();
+  } else {
   }
 });
 
@@ -57,6 +58,7 @@ provider.event.listen('category/tutor/.*', function(subject, isSubscribed, respo
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
     response.accept();
+  } else {
   }
 });
 
