@@ -47,8 +47,8 @@ provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, respon
     subjectTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
-  }else {
-
+    response.accept();
+  } else {
   }
 });
 
@@ -57,8 +57,8 @@ provider.event.listen('category/tutor/.*', function(subject, isSubscribed, respo
     categoryTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
-  }else {
-
+    response.accept();
+  } else {
   }
 });
 
@@ -70,14 +70,10 @@ function subjectTutorSubscribe(category, callback) {
     cursor.each(() => {
       r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
       .run(connection, function(err, cursor) {
-        if(err) throw err;
+        if(err) {throw err;}
         cursor.toArray(function(err, result) {
-          if (err) throw err;
-          var tutors = [];
-          for (var i in result) {
-            tutors.push(result[i]);
-          }
-          callback(tutors, category);
+          if (err) {throw err;}
+          callback(result, category);
         });
       });
    });
@@ -92,14 +88,10 @@ function categoryTutorSubscribe(category, callback) {
     cursor.each(() => {
       r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
       .run(connection, function(err, cursor) {
-        if(err) throw err;
+        if(err) {throw err;}
         cursor.toArray(function(err, result) {
-          if (err) throw err;
-          var tutors = [];
-          for (var i in result) {
-            tutors.push(result[i]);
-          }
-          callback(tutors, category);
+          if (err) {throw err;}
+          callback(result, category);
         });
       });
    });
@@ -133,14 +125,10 @@ provider.rpc.provide('search', function (data, response) {
 function subjectTutor(subject, callback) {
   r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(subject)})
   .run(connection, function(err, cursor) {
-    if (err) throw err;
+    if (err) {throw err;}
     cursor.toArray(function(err, result) {
-      if (err) throw err;
-      var tutors = [];
-      for (var i in result) {
-        tutors.push(result[i]);
-      }
-      callback(tutors);
+      if (err) {throw err;}
+      callback(result);
     });
   });
 }
@@ -148,14 +136,10 @@ function subjectTutor(subject, callback) {
 function categoryTutor(category, callback) {
   r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
   .run(connection, function(err, cursor) {
-    if (err) throw err;
+    if (err) {throw err;}
     cursor.toArray(function(err, result) {
-      if (err) throw err;
-      var tutors = [];
-      for (var i in result) {
-        tutors.push(result[i]);
-      }
-      callback(tutors);
+      if (err) {throw err;}
+      callback(result);
     });
   });
 }
@@ -179,7 +163,7 @@ function search(params, callback) {
   //    })
     .run(connection, (err, cursor) => {
 
-      if (err) throw err;
+      if (err) {throw err;}
       cursor.toArray(function(err, result) {
         r.expr(result).orderBy('username').limit(50);
         callback(result);
