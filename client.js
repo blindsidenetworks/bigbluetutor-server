@@ -1,12 +1,13 @@
 const deepstream = require('deepstream.io-client-js');
 
-const rpcs = ["./rpc/createuser", "./rpc/meeting"];
-
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
 {
   console.log(error);
 });
+
+const createUser = require("./rpc/createuser")(deepstreamClient);
+const meeting = require("./rpc/meeting")(deepstreamClient);
 
 deepstreamClient.login({
   username: 'server',
@@ -30,17 +31,18 @@ deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
   });
 });
 
-
-deepstreamClient.rpc.provide('changeDescription', (data, response) => {
+function changeDescription(data, response)
+{
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
   {
     userRecord.set("description", data.description);
     response.send({});
   });
-});
+}
 
-deepstreamClient.rpc.provide('registerTutor', (data, response) => {
+function registerTutor(data, response)
+{
   console.log("registerTutor");
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
@@ -81,9 +83,10 @@ deepstreamClient.rpc.provide('registerTutor', (data, response) => {
       response.send({});
     });
   });
-});
+}
 
-deepstreamClient.rpc.provide('sendMessage', (data, response) => {
+function sendMessage(data, response)
+{
   var contact = data.contact;
   var client = data.client;
   var message = data.message;
@@ -111,9 +114,12 @@ deepstreamClient.rpc.provide('sendMessage', (data, response) => {
     }
   });
   response.send({});
-});
-
-for(var i = 0; i < rpcs.length; ++i)
-{
-  require(rpcs[i]).provide(deepstreamClient);
 }
+
+deepstreamClient.rpc.provide('changeDescription', changeDescription);
+deepstreamClient.rpc.provide('registerTutor', registerTutor);
+deepstreamClient.rpc.provide('sendMessage', sendMessage);
+deepstreamClient.rpc.provide("createUser", createUser.createUser);
+deepstreamClient.rpc.provide('requestMeeting', meeting.requestMeeting);
+deepstreamClient.rpc.provide('declineMeeting', meeting.declineMeeting);
+deepstreamClient.rpc.provide('endMeeting', meeting.endMeeting);
