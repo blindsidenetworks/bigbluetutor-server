@@ -42,9 +42,11 @@ provider.event.listen('search/.*', function(subject, isSubscribed, response) {
 
 //LISTENERS
 
-provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, response) {
+provider.event.listen('subject/tutor/.*', function(path, isSubscribed, response) {
   if (isSubscribed) {
-    subjectTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
+    var subject = path.split('/')[2];
+    console.log(subject);
+    subjectTutorSubscribe(subject, function (tutors, subject) {
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
     response.accept();
@@ -52,9 +54,10 @@ provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, respon
   }
 });
 
-provider.event.listen('category/tutor/.*', function(subject, isSubscribed, response) {
+provider.event.listen('category/tutor/.*', function(path, isSubscribed, response) {
   if (isSubscribed) {
-    categoryTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
+    var subject = path.split('/')[2];
+    categoryTutorSubscribe(subject, function (tutors, subject) {
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
     response.accept();
