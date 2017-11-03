@@ -10,7 +10,7 @@ function requestMeeting(data, response)
 {
   var contact = data.contact;
   var client = data.client;
-  // var data = data.data;
+   var specialData = data.data;
   if (client === contact) { return }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -92,7 +92,7 @@ function requestMeeting(data, response)
                 clientMessages[contact] = {pic: userRecord.get('profilePic'), messages:[]};
               }
 
-              if( data && data.categories) {
+              if( specialData && specialData.categories) {
                 clientMessages[contact].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false});
                 messages[client].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false});
               }
@@ -112,7 +112,6 @@ function requestMeeting(data, response)
       });
     }
   });
-  response.send({});
 }
 
 function declineMeeting(data, response)
