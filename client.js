@@ -43,7 +43,7 @@ function changeDescription(data, response)
 
 function registerTutor(data, response)
 {
-  console.log("registerTutor");
+  // console.log("registerTutor");
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
   {

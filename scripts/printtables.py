@@ -1,16 +1,18 @@
 import rethinkdb as r
 import dotenv
 import os
+import json
 
 dotenv.load_dotenv("./.env")
 
 r.connect(os.environ.get("DB_HOST"), int(os.environ.get("DB_PORT"))).repl()
-list = r.db("deepstream").table_list().run()
+tableList = r.db("deepstream").table_list().run()
 print("Table list:")
-print(list)
+print(tableList)
 print()
 
-for table in list:
+for table in tableList:
     print("Table name: " + table)
-    print(r.db("deepstream").table(table).run())
+    table = list(r.db("deepstream").table(table).run())
+    print(json.dumps(table, indent=1, sort_keys=True))
     print()

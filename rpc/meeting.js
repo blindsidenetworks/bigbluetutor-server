@@ -120,7 +120,7 @@ function declineMeeting(data, response)
   var contact = data.contact;
   var client = data.client;
   // var data = data.data;
-  if (client === contact) { return }
+  if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
       var record = deepstreamClient.record.getRecord("profile/"+contact);
@@ -164,7 +164,7 @@ function endMeeting(data, response)
   var contact = data.contact;
   var client = data.client;
   // var data = data.data;
-  if (client === contact) { return }
+  if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
       var record = deepstreamClient.record.getRecord("profile/"+contact);
@@ -174,7 +174,7 @@ function endMeeting(data, response)
           var pendingMeetings = record.get('pendingMeetings');
           var clientPendingMeetings = clientRecord.get('pendingMeetings');
           var requestMeetings = record.get('requestMeetings');
-          var clientRequestMeetings = clientRecord.get('requestMeetings');
+          // var clientRequestMeetings = clientRecord.get('requestMeetings');
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
 
