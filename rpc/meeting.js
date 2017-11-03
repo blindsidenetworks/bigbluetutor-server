@@ -1,3 +1,4 @@
+var deepstreamClient;
 var createMeeting = require('./createMeeting.js');
 
 function getActiveItem(item)
