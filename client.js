@@ -60,6 +60,7 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
           var clientMessages = clientRecord.get('messages');
 
           if(clientRecord.get('meeting') != '') {
+            //do nothing for now
             return;
           }
 
@@ -83,16 +84,23 @@ deepstreamClient.rpc.provide('requestMeeting', (data, response) => {
               return false;
             });
 
+            //can't accept if requestor is in meeting
             if (record.get('meeting') != '') {
               if (i!=-1) {
                 messages[client].messages.splice(i,1,{user: contact, message: "Session Declined", special: "DeclinedRequest", active: false});
+                messages[client].messages.push({user: contact, message: "Sorry I am currently in another meeting. Please try again later", special: false, active: false});
                 record.set('messages', messages);
               }
 
               if (j!=-1) {
                 clientMessages[contact].messages.splice(j,1,{user: contact, message: "Session Declined", special: "DeclinedRequest", active: false});
+                clientMessages[contact].messages.push({user: contact, message: "Sorry I am currently in another meeting. Please try again later", special: false, active: false});
                 clientRecord.set('messages', clientMessages);
               }
+              clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
+              requestMeetings.splice(requestMeetings.indexOf(client), 1);
+              record.set('pendingMeetings', pendingMeetings);
+              clientRecord.set('pendingMeetings', clientPendingMeetings);
               return;
             } else {
               record.set('meeting',true);
@@ -197,11 +205,6 @@ deepstreamClient.rpc.provide('endMeeting', (data, response) => {
             clientMessages[contact].messages.splice(i,1,{user: client, message: "Session Ended", special: "EndedSession", active: false});
             clientRecord.set('messages', clientMessages);
           }
-
-          clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
-          requestMeetings.splice(requestMeetings.indexOf(client), 1);
-          record.set('pendingMeetings', pendingMeetings);
-          clientRecord.set('pendingMeetings', clientPendingMeetings);
           clientRecord.set('meeting','');
           record.set('meeting','');
         });
