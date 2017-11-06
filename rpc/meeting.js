@@ -28,7 +28,7 @@ function requestMeeting(data, response)
   //contact: the user the client wants to meet with
   var contact = data.contact;
   var client = data.client;
-  var data = data.data;
+  var specialData = data.data;
   if (client === contact) { return }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -95,13 +95,13 @@ function requestMeeting(data, response)
                 clientMessages[contact] = {pic: userRecord.get('profilePic'), messages:[]};
               }
 
-              if( data && data.categories && data.time) {
-                clientMessages[contact].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false, active: false});
-                messages[client].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false, active: false});
+              if(specialData && specialData.categories && specialData.time) {
+                clientMessages[contact].messages.push({user: client, message: 'I would like to request a tutoring session for '+specialData.categories+'. The preferred tutoring session length is '+specialData.time+' minutes.', special: false});
+                messages[client].messages.push({user: client, message: 'I would like to request a tutoring session for '+specialData.categories+'. The preferred tutoring session length is '+specialData.time+' minutes.', special: false});
               }
 
-              messages[client].messages.push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: data});
-              clientMessages[contact].messages.push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: data});
+              messages[client].messages.push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: specialData});
+              clientMessages[contact].messages.push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: specialData});
               record.set('messages',messages);
               clientRecord.set('messages',clientMessages);
               pendingMeetings.push(client);
@@ -115,14 +115,13 @@ function requestMeeting(data, response)
       });
     }
   });
-  response.send({});
 }
 
 function declineMeeting(data, response)
 {
   var contact = data.contact;
   var client = data.client;
-  var data = data.data;
+  // var specialData = data.data;
   if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -159,7 +158,7 @@ function endMeeting(data, response)
 {
   var contact = data.contact;
   var client = data.client;
-  var data = data.data;
+  // var specialData = data.data;
   if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {

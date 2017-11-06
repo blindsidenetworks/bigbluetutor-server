@@ -14,7 +14,7 @@ provider.login({
 });
 var connection = null;
 r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err, conn) {
-  if (err) {throw err;}
+  if (err) throw err;
   connection = conn;
 });
 
@@ -42,21 +42,26 @@ provider.event.listen('search/.*', function(subject, isSubscribed, response) {
 
 //LISTENERS
 
-provider.event.listen('subject/tutor/.*', function(subject, isSubscribed, response) {
+provider.event.listen('subject/tutor/.*', function(path, isSubscribed, response) {
   if (isSubscribed) {
-    subjectTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
+    var subject = path.split('/')[2];
+    console.log(subject);
+    subjectTutorSubscribe(subject, function (tutors, subject) {
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });
     response.accept();
+  } else {
   }
 });
 
-provider.event.listen('category/tutor/.*', function(subject, isSubscribed, response) {
+provider.event.listen('category/tutor/.*', function(path, isSubscribed, response) {
   if (isSubscribed) {
-    categoryTutorSubscribe(subject.split('/')[1], function (tutors, subject) {
+    var subject = path.split('/')[2];
+    categoryTutorSubscribe(subject, function (tutors, subject) {
       provider.event.emit('category/tutor/'+subject, {subject: subject, data: tutors});
     });
     response.accept();
+  } else {
   }
 });
 
