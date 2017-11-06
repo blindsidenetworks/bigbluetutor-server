@@ -6,11 +6,29 @@ function getActiveItem(item)
   return item.active;
 }
 
+function meetingMessage(messages, clientMessages, statusMessage, infoMessage)
+{
+  var activeMeeting = messages.findIndex(getActiveItem);
+  var activeClientMeeting = clientMessages.findIndex(getActiveItem);
+
+  if (activeMeeting!==-1) {
+    if(statusMessage) {messages[activeMeeting] = statusMessage;}
+    if(infoMessage) {messages.push(infoMessage);}
+  }
+
+  if (activeClientMeeting!==-1) {
+    if(statusMessage) {clientMessages[activeClientMeeting] = statusMessage;}
+    if(infoMessage) {clientMessages.push(infoMessage);}
+  }
+}
+
 function requestMeeting(data, response)
 {
+  //client: the user requesting the meeting
+  //contact: the user the client wants to meet with
   var contact = data.contact;
   var client = data.client;
-  // var data = data.data;
+  var data = data.data;
   if (client === contact) { return }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -33,43 +51,28 @@ function requestMeeting(data, response)
           }
 
           if (clientPendingMeetings.indexOf(contact) != -1) {
+            //Both users requested a meeting, so attempt to start one
 
-            var i = messages[client].messages.findIndex(getActiveItem);
-            var j = clientMessages[contact].messages.findIndex(getActiveItem);
-
-            //can't accept if requestor is in meeting
+            //can't accept if requested user is in meeting
             if (record.get('meeting') != '') {
-              if (i!==-1) {
-                messages[client].messages.splice(i,1,{user: contact, message: "Session Declined", special: "DeclinedRequest", active: false});
-                messages[client].messages.push({user: contact, message: "Sorry I am currently in another meeting. Please try again later", special: false, active: false});
-                record.set('messages', messages);
-              }
-
-              if (j!==-1) {
-                clientMessages[contact].messages.splice(j,1,{user: contact, message: "Session Declined", special: "DeclinedRequest", active: false});
-                clientMessages[contact].messages.push({user: contact, message: "Sorry I am currently in another meeting. Please try again later", special: false, active: false});
-                clientRecord.set('messages', clientMessages);
-              }
-
+              meetingMessage(messages[client].messages, clientMessages[contact].messages,
+                {user: contact, message: "Session Declined", special: "DeclinedRequest", active: false},
+                {user: contact, message: "Sorry, I am currently in another meeting. Please try again later.", special: false, active: false});
+              record.set('messages', messages);
+              clientRecord.set('messages', clientMessages);
               clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
               requestMeetings.splice(requestMeetings.indexOf(client), 1);
               record.set('pendingMeetings', pendingMeetings);
               clientRecord.set('pendingMeetings', clientPendingMeetings);
               return;
-            } else {
-              record.set('meeting',true);
-              if (i!==-1) {
-                messages[client].messages.splice(i,1,{user: client, message: "session in progress", special: "ActiveSession", active: true});
-                record.set('messages', messages);
-              }
-
-              if (j!==-1) {
-                clientMessages[contact].messages.splice(j,1,{user: client, message: "session in progress", special: "ActiveSession", active: true});
-                clientRecord.set('messages', clientMessages);
-              }
-
             }
 
+            //Accept the request and start a meeting
+            meetingMessage(messages[client].messages, clientMessages[contact].messages,
+              {user: client, message: "Session in progress", special: "ActiveSession", active: true});
+
+            record.set('messages', messages);
+            clientRecord.set('messages', clientMessages);
             clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
             requestMeetings.splice(requestMeetings.indexOf(client), 1);
             record.set('pendingMeetings', pendingMeetings);
@@ -92,9 +95,9 @@ function requestMeeting(data, response)
                 clientMessages[contact] = {pic: userRecord.get('profilePic'), messages:[]};
               }
 
-              if( data && data.categories) {
-                clientMessages[contact].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false});
-                messages[client].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false});
+              if( data && data.categories && data.time) {
+                clientMessages[contact].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false, active: false});
+                messages[client].messages.push({user: client, message: 'I would like to request a tutoring session for '+data.categories+'. The preferred tutoring session length is '+data.time+' minutes.', special: false, active: false});
               }
 
               messages[client].messages.push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: data});
@@ -119,7 +122,7 @@ function declineMeeting(data, response)
 {
   var contact = data.contact;
   var client = data.client;
-  // var data = data.data;
+  var data = data.data;
   if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -134,20 +137,13 @@ function declineMeeting(data, response)
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
 
-          var i = messages[client].messages.findIndex(getActiveItem);
+          var activeMeeting = messages[client].messages.findIndex(getActiveItem);
 
-          if (i!==-1) {
-            messages[client].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
-            record.set('messages', messages);
-          }
+          meetingMessage(messages[client].messages, clientMessages[contact].messages,
+            {user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
 
-          i = clientMessages[contact].messages.findIndex(getActiveItem);
-
-          if (i!==-1) {
-            clientMessages[contact].messages.splice(i,1,{user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
-            clientRecord.set('messages', clientMessages);
-          }
-
+          record.set('messages', messages);
+          clientRecord.set('messages', clientMessages);
           clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
           requestMeetings.splice(requestMeetings.indexOf(client), 1);
           record.set('pendingMeetings', pendingMeetings);
@@ -163,7 +159,7 @@ function endMeeting(data, response)
 {
   var contact = data.contact;
   var client = data.client;
-  // var data = data.data;
+  var data = data.data;
   if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -178,20 +174,11 @@ function endMeeting(data, response)
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
 
-          var i = messages[client].messages.findIndex(getActiveItem);
+          meetingMessage(messages[client].messages, clientMessages[contact].messages,
+            {user: client, message: "Session Ended", special: "EndedSession", active: false});
 
-          if (i!==-1) {
-            messages[client].messages.splice(i,1,{user: client, message: "Session Ended", special: "EndedSession", active: false});
-            record.set('messages', messages);
-          }
-
-          i = clientMessages[contact].messages.findIndex(getActiveItem);
-
-          if (i!==-1) {
-            clientMessages[contact].messages.splice(i,1,{user: client, message: "Session Ended", special: "EndedSession", active: false});
-            clientRecord.set('messages', clientMessages);
-          }
-
+          record.set('messages', messages);
+          clientRecord.set('messages', clientMessages);
           clientRecord.set('meeting','');
           record.set('meeting','');
         });

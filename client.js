@@ -97,19 +97,19 @@ function sendMessage(data, response)
       //profilePicture
       var userRecord = deepstreamClient.record.getRecord('user/'+client);
       userRecord.whenReady(() => {
-      record.whenReady(() => {
-        clientRecord.whenReady(() => {
-          var messages = record.get('messages');
-          if (!messages){
-            messages = {client:{pic: userRecord.get('profilePic'), messages:[{user:client,message:message, special: false}]}}
-          }else if(messages[client]) {
-            messages[client].messages.push({user:client,message:message, special: false})
-          }else {
-            messages[client] = {pic: userRecord.get('profilePic'),messages: [{user:client,message:message, special: false}]}
-          }
-          record.set('messages',messages);
-        });
-     });
+        record.whenReady(() => {
+          clientRecord.whenReady(() => {
+            var messages = record.get('messages');
+            if (!messages){
+              messages = {client:{pic: userRecord.get('profilePic'), messages:[{user:client,message:message, special: false}]}}
+            }else if(messages[client]) {
+              messages[client].messages.push({user:client,message:message, special: false})
+            }else {
+              messages[client] = {pic: userRecord.get('profilePic'),messages: [{user:client,message:message, special: false}]}
+            }
+            record.set('messages',messages);
+          });
+       });
      });
     }
   });
