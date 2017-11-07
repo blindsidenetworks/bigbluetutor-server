@@ -38,8 +38,8 @@ function getUserDataError(profile, user, auth)
 
 function createUser(data, response)
 {
-  console.log("Creating user");
-  console.log(data);
+  // console.log("Creating user");
+  // console.log(data);
 
   var googleID = data.googleID;
   var username = data.username;
