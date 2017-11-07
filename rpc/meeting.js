@@ -135,8 +135,6 @@ function declineMeeting(data, response)
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
 
-          var activeMeeting = messages[client].messages.findIndex(getActiveItem);
-
           meetingMessage(messages[client].messages, clientMessages[contact].messages,
             {user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
 
