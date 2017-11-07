@@ -4,17 +4,18 @@ var deepstreamClient = require("deepstream.io-client-js");
 var GoogleAuth = require("google-auth-library");
 var dotenv = require("dotenv");
 var r = require("rethinkdb");
+var winston = require("winston");
 
+winston.level = "debug";
 const server = new Deepstream("conf/config.yml");
+var dsClient;
 var config = dotenv.config().parsed;
 var connection = null;
 
 //Google auth setup
 var googleClientID = config.GOOGLE_CLIENT_ID;
-
 var auth = new GoogleAuth();
 var client = new auth.OAuth2(googleClientID, "", "");
-var dsClient;
 
 //Deepstream setup
 server.set("authenticationHandler",

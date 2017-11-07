@@ -50,11 +50,10 @@ function requestMeeting(data, response)
             return;
           }
 
-          if (clientPendingMeetings.indexOf(contact) != -1) {
-            //Both users requested a meeting, so attempt to start one
+          if (clientPendingMeetings.indexOf(contact) !== -1) {
 
             //can't accept if requested user is in meeting
-            if (record.get('meeting') != '') {
+            if (record.get('meeting') !== '') {
               meetingMessage(messages[client].messages, clientMessages[contact].messages,
                 {user: contact, message: "Session Declined", special: "DeclinedRequest", active: false},
                 {user: contact, message: "Sorry, I am currently in another meeting. Please try again later.", special: false, active: false});
@@ -85,7 +84,7 @@ function requestMeeting(data, response)
             createMeeting(contact + '/' + client, client, function(meetingUrl) {
               clientRecord.set('meeting', meetingUrl);
             });
-          } else if (pendingMeetings.indexOf(client) == -1) {
+          } else if (pendingMeetings.indexOf(client) === -1) {
             userRecord.whenReady(() => {
               clientUserRecord.whenReady(() => {
               if (!messages[client]) {
