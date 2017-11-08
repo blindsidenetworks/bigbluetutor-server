@@ -36,6 +36,24 @@ function getUserDataError(profile, user, auth)
   return null;
 }
 
+function isValidUsername(username)
+{
+  var a = "a".charCodeAt(0);
+  var z = "z".charCodeAt(0);
+  var zero = "0".charCodeAt(0);
+  var nine = "9".charCodeAt(0);
+  var space = " ".charCodeAt(0);
+  for(var i = 0; i < username.length; ++i)
+  {
+    var c = username.charCodeAt(i);
+    if(!((c >= a && c <= z) || (c >= zero && c <= nine) || c === space))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 function createUser(data, response)
 {
   // console.log("Creating user");
@@ -59,6 +77,13 @@ function createUser(data, response)
   }
 
   username = username.toLowerCase();
+
+  if(!isValidUsername)
+  {
+    console.log("Error: Invalid username");
+    response.send({username: undefined, error: "Usernames may only contain letters, digits and spaces"});
+    return;
+  }
 
   //Do not create a new user if a profile record with the given username already exists
   deepstreamClient.record.has("profile/" + username, (error, hasRecord) =>
