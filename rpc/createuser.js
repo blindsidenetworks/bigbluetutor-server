@@ -134,6 +134,7 @@ function createUser(data, response)
                 stars: [],
                 pendingMeetings: [],
                 requestMeetings: [],
+                deviceTokens: [],
                 messages: {},
                 meeting: ""
               };

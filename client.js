@@ -1,4 +1,5 @@
 const deepstream = require('deepstream.io-client-js');
+var sendNotification = require('./rpc/push.js');
 
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
@@ -12,11 +13,7 @@ const meeting = require("./rpc/meeting")(deepstreamClient);
 deepstreamClient.login({
   username: 'server',
   password: 'sp'
-}, function(success, data)
-{
-  console.log("Success:", success);
-  console.log("Data:", data);
-});
+}, function(success, data){});
 
 deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
 {
@@ -31,19 +28,30 @@ deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
   });
 });
 
-function changeDescription(data, response)
-{
+function changeDescription(data, response) {
   var username = data.username;
-  deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
-  {
+  deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord => {
     userRecord.set("description", data.description);
-    response.send({});
   });
 }
 
-function registerTutor(data, response)
-{
-  // console.log("registerTutor");
+function addDeviceToken(data, response) {
+  console.log(data);
+  console.log(data.username);
+  console.log(data.deviceToken);
+  var username = data.username;
+  deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
+    var tokens = userRecord.get("deviceTokens");
+    if (tokens.indexOf(data.deviceToken) === -1) {
+      tokens.push(data.deviceToken);
+      userRecord.set('deviceTokens', tokens);
+      console.log(userRecord.get('deviceTokens'));
+    }
+  });
+
+}
+
+function registerTutor(data, response) {
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
   {
@@ -55,9 +63,7 @@ function registerTutor(data, response)
       var subjects = [];
       var categoryList = dataRecord.get('categories');
       var categories = Array.from(new Set(data.categories || []));
-      if(categories.length === 0)
-      {
-        response.send({});
+      if(categories.length === 0) {
         return;
       }
 
@@ -73,20 +79,17 @@ function registerTutor(data, response)
       }
 
       //make user tutor
-      if (!user.tutor)
-      {
+      if (!user.tutor) {
         user.tutor = true;
         user.subjects = subjects;
         user.categories = categories;
         userRecord.set(user);
       }
-      response.send({});
     });
   });
 }
 
-function sendMessage(data, response)
-{
+function sendMessage(data, response) {
   var contact = data.contact;
   var client = data.client;
   var message = data.message;
@@ -100,23 +103,24 @@ function sendMessage(data, response)
         record.whenReady(() => {
           clientRecord.whenReady(() => {
             var messages = record.get('messages');
-            if (!messages){
+            if (!messages) {
               messages = {client:{pic: userRecord.get('profilePic'), messages:[{user:client,message:message, special: false}]}}
-            }else if(messages[client]) {
+            } else if(messages[client]) {
               messages[client].messages.push({user:client,message:message, special: false})
-            }else {
+            } else {
               messages[client] = {pic: userRecord.get('profilePic'),messages: [{user:client,message:message, special: false}]}
             }
             record.set('messages',messages);
+            sendNotification(record.get('deviceTokens'), 'Message from '+client, message);
           });
        });
      });
     }
   });
-  response.send({});
 }
 
 deepstreamClient.rpc.provide('changeDescription', changeDescription);
+deepstreamClient.rpc.provide('addDeviceToken', addDeviceToken);
 deepstreamClient.rpc.provide('registerTutor', registerTutor);
 deepstreamClient.rpc.provide('sendMessage', sendMessage);
 deepstreamClient.rpc.provide("createUser", createUser.createUser);
