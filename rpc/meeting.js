@@ -114,6 +114,7 @@ function requestMeeting(data, response)
       });
     }
   });
+  response.send({});
 }
 
 function declineMeeting(data, response)
