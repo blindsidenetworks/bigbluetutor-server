@@ -11,8 +11,7 @@ const createUser = require("./rpc/createuser")(deepstreamClient);
 const meeting = require("./rpc/meeting")(deepstreamClient);
 
 deepstreamClient.login({
-  username: 'server',
-  password: 'sp'
+  username: 'server'
 }, function(success, data){});
 
 deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
