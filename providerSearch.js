@@ -7,10 +7,9 @@ var config = dotenv.config().parsed;
 var activeSessions = {};
 
 provider.login({
-  username: 'provider',
-  password: 'sp'
+  username: 'provider'
 }, (success, data) => {
-  console.log(success);
+  console.log("Success:", success);
 });
 var connection = null;
 r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err, conn) {
@@ -149,28 +148,22 @@ function categoryTutor(category, callback) {
 
 //Search for tutors who tutor the subject or category searched, or whose usernames match the search term
 function search(params, callback) {
-  provider.presence.getAll(users =>
-  {
-    r.db('deepstream').table('user')
-    .filter(
-      function(tutor) {
-        return r.or(tutor('categories').contains(function(subject) {
-          return subject.match('(?i)'+params)
-        }), tutor('subjects').contains(function(subject) {
-          return subject.match('(?i)'+params)
-        }), tutor('username').match('(?i)'+params))
-        .and(r.expr(users).contains(tutor('username')));
-      })
-  //  .orderBy(function(tutor) {
-  //      return tutor('username').split("").count()
-  //    })
-    .run(connection, (err, cursor) => {
-
-      if (err) {throw err;}
-      cursor.toArray(function(err, result) {
-        r.expr(result).orderBy('username').limit(50);
-        callback(result);
-      })
+  console.time("search");
+  r.db('deepstream').table('user')
+  .filter(
+    function(tutor) {
+      return r.or(tutor('categories').contains(function(subject) {
+        return subject.match('(?i)'+params)
+      }), tutor('subjects').contains(function(subject) {
+        return subject.match('(?i)'+params)
+      }), tutor('username').match('(?i)'+params))
+      .and(r.db("deepstream").table("profile").get(tutor("username"))("online").eq(true));
+    }).orderBy("username").limit(50)
+  .run(connection, (err, cursor) => {
+    if (err) {throw err;}
+    cursor.toArray(function(err, result) {
+      callback(result);
+      console.timeEnd("search");
     });
   });
 }
