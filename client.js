@@ -1,9 +1,14 @@
 const deepstream = require('deepstream.io-client-js');
+const winston = require("winston");
+const dotenv = require("dotenv");
+const config = dotenv.config().parsed;
+
+winston.level = config.LOG_LEVEL;
 
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
 {
-  console.log(error);
+  winston.error(error);
 });
 
 const createUser = require("./rpc/createuser")(deepstreamClient);
@@ -13,8 +18,8 @@ deepstreamClient.login({
   username: 'server'
 }, function(success, data)
 {
-  console.log("Success:", success);
-  // console.log("Data:", data);
+  winston.debug("Success:", success);
+  // winston.debug("Data:", data);
 });
 
 deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
@@ -42,7 +47,7 @@ function changeDescription(data, response)
 
 function registerTutor(data, response)
 {
-  // console.log("registerTutor");
+  winston.debug("registerTutor");
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
   {

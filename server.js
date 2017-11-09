@@ -1,17 +1,17 @@
-var Deepstream = require("deepstream.io");
-var RethinkDB = require("deepstream.io-storage-rethinkdb");
-var deepstreamClient = require("deepstream.io-client-js");
-var GoogleAuth = require("google-auth-library");
-var dotenv = require("dotenv");
-var r = require("rethinkdb");
-var winston = require("winston");
+const Deepstream = require("deepstream.io");
+const RethinkDB = require("deepstream.io-storage-rethinkdb");
+const deepstreamClient = require("deepstream.io-client-js");
+const GoogleAuth = require("google-auth-library");
+const dotenv = require("dotenv");
+const r = require("rethinkdb");
+const winston = require("winston");
 
-winston.level = "debug";
-const server = new Deepstream("conf/config.yml");
+var server = new Deepstream("conf/config.yml");
 var dsClient;
 var config = dotenv.config().parsed;
 var connection = null;
 var ready = false;
+winston.level = config.LOG_LEVEL;
 
 //Google auth setup
 var googleClientID = config.GOOGLE_CLIENT_ID;
@@ -24,13 +24,13 @@ function googleLogin(authData, callback)
   {
     if(error)
     {
-      console.log(error);
+      winston.error(error);
       callback(null, {username: "Access denied", clientData: {googleError: true}});
       return;
     }
     if(!login)
     {
-      console.log("Error: can't get payload from idToken");
+      winston.error("Can't get payload from idToken");
       callback(null, {username: "Access denied", clientData: {googleError: true}});
       return;
     }
@@ -40,7 +40,7 @@ function googleLogin(authData, callback)
     {
       if(error)
       {
-        console.log(error);
+        winston.error(error);
         callback(null, {username: "Access denied"});
         return;
       }
@@ -48,7 +48,7 @@ function googleLogin(authData, callback)
       {
         if(error)
         {
-          console.log(error);
+          winston.error(error);
           callback(null, {username: "Access denied"});
           return;
         }
@@ -64,19 +64,19 @@ function googleLogin(authData, callback)
         else if(profiles.length > 1)
         {
           //There should be at most one user with the given Google ID
-          console.log("Error: more than one user with given Google ID");
+          winston.error("More than one user with given Google ID");
           callback(null, {username: "Access denied"});
         }
         else if(authData.username)
         {
           //No user found, so user needs to set a username to create an account
           //If a username was requested, attempt to create the account. Otherwise, do not log in
-          console.log("Creating user with username", authData.username);
+          winston.info("Creating user with username", authData.username);
           dsClient.rpc.make("createUser", {googleID: payload.sub, username: authData.username}, (error, result) =>
           {
             if(error)
             {
-              console.log(error);
+              winston.error(error);
               callback(null, {username: "Access denied", clientData: result});
             }
             else if(result.username)
@@ -97,7 +97,7 @@ function googleLogin(authData, callback)
         }
         else
         {
-          console.log("Error: no user with matching Google ID exists and no username was given. Redirecting to account creation page");
+          winston.error("No user with matching Google ID exists and no username was given. Redirecting to account creation page");
           callback(null, {username: "Access denied", clientData: {needsUsername: true}});
         }
       });
@@ -142,7 +142,7 @@ server.on("started", () =>
 {
   dsClient = deepstreamClient('localhost:6020').on("error", error =>
   {
-    console.log(error);
+    winston.error(error);
   });
   dsClient.login({
     username: 'server'
@@ -150,7 +150,7 @@ server.on("started", () =>
   {
     if(!success)
     {
-      console.log("Error starting client");
+      winston.error("Error starting client");
       return;
     }
 
@@ -160,7 +160,7 @@ server.on("started", () =>
       {
         if(error)
         {
-          console.log(error);
+          winston.error(error);
           return;
         }
         if(!hasRecord) {return;}
@@ -182,7 +182,7 @@ server.on("started", () =>
           {
             if(error)
             {
-              console.log(error);
+              winston.error(error);
               return;
             }
             if(!hasRecord) {return;}
@@ -194,7 +194,7 @@ server.on("started", () =>
         })(i);
       }
       ready = true;
-      console.log("Server ready");
+      winston.info("Server ready");
     });
   });
 });

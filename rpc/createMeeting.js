@@ -1,8 +1,10 @@
 var crypto = require('crypto');
 var https = require('https');
-var dotenv = require("dotenv");
+const winston = require("winston");
+const dotenv = require("dotenv");
+const config = dotenv.config().parsed;
 
-var config = dotenv.config().parsed;
+winston.level = config.LOG_LEVEL;
 
 function createRoom(meetingId, fullName, callback) {
   const defaultModeratorPassword = "mp";
@@ -20,7 +22,7 @@ function createRoom(meetingId, fullName, callback) {
     var params = 'fullName=' + fullName + '&meetingID=' + meetingId + '&password=' + defaultAttendeePassword + '&voiceBridge=' + voiceBridge + '&redirectClient=true&clientURL=' + config.BIGBLUEBUTTON_URL + 'html5client/join';
     var checksum = crypto.createHash('sha1').update('join' + params + config.BIGBLUEBUTTON_SECRET).digest('hex');
     meetingUrl += params + '&checksum=' + checksum;
-    console.log(meetingUrl);
+    winston.debug(meetingUrl);
     callback(meetingUrl);
   });
 }

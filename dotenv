@@ -13,3 +13,5 @@ GOOGLE_CLIENT_ID=
 # No need to add bigbluebutton/api
 BIGBLUEBUTTON_URL=
 BIGBLUEBUTTON_SECRET=
+
+LOG_LEVEL=info

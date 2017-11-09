@@ -1,3 +1,9 @@
+const winston = require("winston");
+const dotenv = require("dotenv");
+const config = dotenv.config().parsed;
+
+winston.level = config.LOG_LEVEL;
+
 var deepstreamClient;
 
 function getUserDataError(profile, user, auth)
@@ -5,32 +11,32 @@ function getUserDataError(profile, user, auth)
   //Check for errors getting the records, or if a user already exists
   if(!profile)
   {
-    console.log("Error getting the profile record");
+    winston.error("Error getting the profile record");
     return "An error occurred. Please try again";
   }
   if(profile.username)
   {
-    console.log("Error: Profile record with matching username already exists");
+    winston.error("Profile record with matching username already exists");
     return "This username is already in use"
   }
   if(!user)
   {
-    console.log("Error getting the user record");
+    winston.error("Error getting the user record");
     return "An error occurred. Please try again"
   }
   if(user.username)
   {
-    console.log("Error: User record with matching username already exists");
+    winston.error("User record with matching username already exists");
     return "This username is already in use"
   }
   if(!auth)
   {
-    console.log("Error getting the auth record");
+    winston.error("Error getting the auth record");
     return "An error occurred. Please try again"
   }
   if(auth.username)
   {
-    console.log("Error: Auth record with matching username already exists");
+    winston.error("Auth record with matching username already exists");
     return "This username is already in use"
   }
   return null;
@@ -56,8 +62,8 @@ function isValidUsername(username)
 
 function createUser(data, response)
 {
-  // console.log("Creating user");
-  // console.log(data);
+  // winston.debug("Creating user");
+  // winston.debug(data);
 
   var googleID = data.googleID;
   var username = data.username;
@@ -65,22 +71,22 @@ function createUser(data, response)
   //No ID or username provided, so do nothing
   if(!data || !data.googleID || data.googleID === "")
   {
-    console.log("Error: No Google ID provided");
+    winston.error("No Google ID provided");
     response.send({username: undefined, error: "No Google ID provided"});
     return;
   }
   if(!data.username || data.username === "")
   {
-    console.log("Error: Invalid username");
+    winston.error("Invalid username");
     response.send({username: undefined, error: "Please enter a username"});
     return;
   }
 
-  username = username.toLowerCase().trim();
+  username = username.trim().toLowerCase();
 
   if(!isValidUsername(username))
   {
-    console.log("Error: Invalid username");
+    winston.error("Invalid username");
     response.send({username: undefined, error: "Usernames may only contain letters, digits and spaces"});
     return;
   }
@@ -90,14 +96,14 @@ function createUser(data, response)
   {
     if(error)
     {
-      console.log(error);
+      winston.error(error);
       response.send({username: undefined, error: "An error occurred. Please try again"});
       return;
     }
     if(hasRecord)
     {
       //Profile with given username already exists, so do nothing
-      console.log("Error: Profile with username", username, "already exists");
+      winston.error("Profile with username", username, "already exists");
       response.send({username: undefined, error: "This username is already in use"});
       return;
     }
@@ -107,14 +113,14 @@ function createUser(data, response)
     {
       if(error)
       {
-        console.log(error);
+        winston.error(error);
         response.send({username: undefined, error: "An error occurred. Please try again"});
         return;
       }
       if(hasRecord)
       {
         //User with given username already exists, so do nothing
-        console.log("Error: User with username", username, "already exists");
+        winston.error("User with username", username, "already exists");
         response.send({username: undefined, error: "This username is already in use"});
         return;
       }
@@ -123,13 +129,13 @@ function createUser(data, response)
       {
         if(error)
         {
-            console.log(error);
+            winston.error(error);
             response.send({username: undefined, error: "An error occurred. Please try again"});
             return;
         }
         if(hasRecord)
         {
-            console.log("Error: Auth record with username", username, "already exists");
+            winston.error("Auth record with username", username, "already exists");
             response.send({username: undefined, error: "This username is already in use"});
             return;
         }
