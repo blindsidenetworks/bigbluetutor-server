@@ -173,21 +173,25 @@ server.on("started", () =>
 
     dsClient.presence.getAll(users =>
     {
-      for(var i = 0; i < users.length; ++i)
+      var i;
+      for(i = 0; i < users.length; ++i)
       {
-        dsClient.record.has("profile/" + username, (error, hasRecord) =>
+        (function (i)
         {
-          if(error)
+          dsClient.record.has("profile/" + users[i], (error, hasRecord) =>
           {
-            console.log(error);
-            return;
-          }
-          if(!hasRecord) {return;}
-          deepstreamClient.record.getRecord("profile/" + users[i]).whenReady(record =>
-          {
-            record.set("online", true);
+            if(error)
+            {
+              console.log(error);
+              return;
+            }
+            if(!hasRecord) {return;}
+            deepstreamClient.record.getRecord("profile/" + users[i]).whenReady(record =>
+            {
+              record.set("online", true);
+            });
           });
-        });
+        })(i);
       }
       ready = true;
       console.log("Server ready");
