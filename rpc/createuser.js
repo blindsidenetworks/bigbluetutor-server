@@ -76,7 +76,7 @@ function createUser(data, response)
     return;
   }
 
-  username = username.toLowerCase();
+  username = username.toLowerCase().trim();
 
   if(!isValidUsername(username))
   {
@@ -130,7 +130,7 @@ function createUser(data, response)
         if(hasRecord)
         {
             console.log("Error: Auth record with username", username, "already exists");
-            response.send({username: undefined, error: "An error occurred. Please try again"});
+            response.send({username: undefined, error: "This username is already in use"});
             return;
         }
 
