@@ -78,7 +78,7 @@ function createUser(data, response)
 
   username = username.toLowerCase();
 
-  if(!isValidUsername)
+  if(!isValidUsername(username))
   {
     console.log("Error: Invalid username");
     response.send({username: undefined, error: "Usernames may only contain letters, digits and spaces"});
