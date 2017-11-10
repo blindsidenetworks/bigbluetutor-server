@@ -164,9 +164,9 @@ function endMeeting(data, response)
       var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
       record.whenReady(() => {
         clientRecord.whenReady(() => {
-          var pendingMeetings = record.get('pendingMeetings');
-          var clientPendingMeetings = clientRecord.get('pendingMeetings');
-          var requestMeetings = record.get('requestMeetings');
+          // var pendingMeetings = record.get('pendingMeetings');
+          // var clientPendingMeetings = clientRecord.get('pendingMeetings');
+          // var requestMeetings = record.get('requestMeetings');
           // var clientRequestMeetings = clientRecord.get('requestMeetings');
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');

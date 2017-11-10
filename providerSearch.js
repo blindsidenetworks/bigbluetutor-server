@@ -6,7 +6,6 @@ const winston = require("winston");
 const config = dotenv.config().parsed;
 
 winston.level = config.LOG_LEVEL;
-var activeSessions = {};
 
 const provider = deepstream('localhost:6020');
 
