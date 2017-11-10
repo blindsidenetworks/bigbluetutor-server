@@ -1,5 +1,4 @@
 var dotenv = require("dotenv");
-var NodePushNotifications = require('node-pushnotifications');
 const winston = require("winston");
 const config = dotenv.config().parsed;
 
@@ -27,7 +26,7 @@ const settings = {
         notificationMethod: 'sendTileSquareBlock',
     }
 };
-const PushNotifications = new NodePushNotifications;
+const PushNotifications = new require('node-pushnotifications');
 const push = new PushNotifications(settings);
 
 // Single destination
