@@ -1,10 +1,10 @@
 const deepstream = require('deepstream.io-client-js');
 const winston = require("winston");
 const dotenv = require("dotenv");
+const sendNotification = require('./rpc/push.js');
 const config = dotenv.config().parsed;
 
 winston.level = config.LOG_LEVEL;
-var sendNotification = require('./rpc/push.js');
 
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
