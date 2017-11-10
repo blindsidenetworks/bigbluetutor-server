@@ -2,14 +2,17 @@ const r = require('rethinkdb');
 const deepstream = require('deepstream.io-client-js');
 const provider = deepstream('localhost:6020');
 const dotenv = require("dotenv");
+const winston = require("winston");
 
-var config = dotenv.config().parsed;
+const config = dotenv.config().parsed;
+
+winston.level = config.LOG_LEVEL;
 var activeSessions = {};
 
 provider.login({
   username: 'provider'
 }, (success, data) => {
-  console.log("Success:", success);
+  winston.debug("Success:", success);
 });
 var connection = null;
 r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err, conn) {
@@ -44,7 +47,7 @@ provider.event.listen('search/.*', function(subject, isSubscribed, response) {
 provider.event.listen('subject/tutor/.*', function(path, isSubscribed, response) {
   if (isSubscribed) {
     var subject = path.split('/')[2];
-    console.log(subject);
+    winston.debug(subject);
     subjectTutorSubscribe(subject, function (tutors, subject) {
       provider.event.emit('subject/tutor/'+subject, {subject: subject, data: tutors});
     });

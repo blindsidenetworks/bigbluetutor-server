@@ -1,10 +1,15 @@
 const deepstream = require('deepstream.io-client-js');
+const winston = require("winston");
+const dotenv = require("dotenv");
+const config = dotenv.config().parsed;
+
+winston.level = config.LOG_LEVEL;
 var sendNotification = require('./rpc/push.js');
 
 //Deepstream setup
 const deepstreamClient = deepstream('localhost:6020').on("error", error =>
 {
-  console.log(error);
+  winston.error(error);
 });
 
 const createUser = require("./rpc/createuser")(deepstreamClient);
@@ -12,7 +17,11 @@ const meeting = require("./rpc/meeting")(deepstreamClient);
 
 deepstreamClient.login({
   username: 'server'
-}, function(success, data){});
+}, function(success, data)
+{
+  winston.debug("Success:", success);
+  // winston.debug("Data:", data);
+});
 
 deepstreamClient.record.getRecord('data').whenReady(dataRecord =>
 {
@@ -31,26 +40,29 @@ function changeDescription(data, response) {
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord => {
     userRecord.set("description", data.description);
+    response.send({});
   });
 }
 
 function addDeviceToken(data, response) {
-  console.log(data);
-  console.log(data.username);
-  console.log(data.deviceToken);
+  winston.debug(data);
+  winston.debug(data.username);
+  winston.debug(data.deviceToken);
   var username = data.username;
   deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
     var tokens = userRecord.get("deviceTokens");
     if (tokens.indexOf(data.deviceToken) === -1) {
       tokens.push(data.deviceToken);
       userRecord.set('deviceTokens', tokens);
-      console.log(userRecord.get('deviceTokens'));
+      winston.debug(userRecord.get('deviceTokens'));
     }
+    response.send({});
   });
-
 }
 
-function registerTutor(data, response) {
+function registerTutor(data, response)
+{
+  winston.debug("registerTutor");
   var username = data.username;
   deepstreamClient.record.getRecord('user/'+username).whenReady(userRecord =>
   {
@@ -84,6 +96,7 @@ function registerTutor(data, response) {
         user.categories = categories;
         userRecord.set(user);
       }
+      response.send({});
     });
   });
 }
@@ -115,6 +128,7 @@ function sendMessage(data, response) {
        });
      });
     }
+    response.send({});
   });
 }
 
