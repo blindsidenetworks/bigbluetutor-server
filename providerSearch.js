@@ -1,6 +1,5 @@
 const r = require('rethinkdb');
 const deepstream = require('deepstream.io-client-js');
-const provider = deepstream('localhost:6020');
 const dotenv = require("dotenv");
 const winston = require("winston");
 
@@ -9,6 +8,8 @@ const config = dotenv.config().parsed;
 winston.level = config.LOG_LEVEL;
 var activeSessions = {};
 
+const provider = deepstream('localhost:6020');
+
 provider.login({
   username: 'provider'
 }, (success, data) => {
@@ -16,7 +17,7 @@ provider.login({
 });
 var connection = null;
 r.connect( {host: config.DB_HOST, port: parseInt(config.DB_PORT)}, function(err, conn) {
-  if (err) throw err;
+  if (err) {throw err;}
   connection = conn;
 });
 
@@ -53,6 +54,7 @@ provider.event.listen('subject/tutor/.*', function(path, isSubscribed, response)
     });
     response.accept();
   } else {
+    //Do nothing
   }
 });
 
@@ -64,12 +66,13 @@ provider.event.listen('category/tutor/.*', function(path, isSubscribed, response
     });
     response.accept();
   } else {
+    //Do nothing
   }
 });
 
 //SUBSCRIBE DB Listener
 function subjectTutorSubscribe(category, callback) {
- r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
@@ -81,7 +84,7 @@ function subjectTutorSubscribe(category, callback) {
           callback(result, category);
         });
       });
-   });
+    });
   });
 }
 
