@@ -156,7 +156,7 @@ server.on("started", () =>
 
     dsClient.presence.subscribe((username, status) =>
     {
-      dsClient.record.has("profile/" + username, (error, hasRecord) =>
+      dsClient.record.has("user/" + username, (error, hasRecord) =>
       {
         if(error)
         {
@@ -164,7 +164,7 @@ server.on("started", () =>
           return;
         }
         if(!hasRecord) {return;}
-        dsClient.record.getRecord("profile/" + username).whenReady(record =>
+        dsClient.record.getRecord("user/" + username).whenReady(record =>
         {
           record.set("online", status);
         });
@@ -178,7 +178,7 @@ server.on("started", () =>
       {
         (function (i)
         {
-          dsClient.record.has("profile/" + users[i], (error, hasRecord) =>
+          dsClient.record.has("user/" + users[i], (error, hasRecord) =>
           {
             if(error)
             {
@@ -186,7 +186,7 @@ server.on("started", () =>
               return;
             }
             if(!hasRecord) {return;}
-            deepstreamClient.record.getRecord("profile/" + users[i]).whenReady(record =>
+            deepstreamClient.record.getRecord("user/" + users[i]).whenReady(record =>
             {
               record.set("online", true);
             });
@@ -206,7 +206,7 @@ r.connect({host: config.DB_HOST, port: config.DB_PORT}, (error, conn) =>
     throw error;
   }
   connection = conn;
-  r.db("deepstream").table("profile").update({online: false}).run(connection, (error) =>
+  r.db("deepstream").table("user").update({online: false}).run(connection, (error) =>
   {
     if(error) {throw error;}
     server.start();

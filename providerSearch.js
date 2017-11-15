@@ -72,11 +72,11 @@ provider.event.listen('category/tutor/.*', function(path, isSubscribed, response
 
 //SUBSCRIBE DB Listener
 function subjectTutorSubscribe(category, callback) {
-  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category).and(tutor('online').eq(true))})
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
-      r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category)})
+      r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category).and(tutor('online').eq(true))})
       .run(connection, function(err, cursor) {
         if(err) {throw err;}
         cursor.toArray(function(err, result) {
@@ -90,11 +90,11 @@ function subjectTutorSubscribe(category, callback) {
 
 
 function categoryTutorSubscribe(category, callback) {
- r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
+ r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category).and(tutor('online').eq(true))})
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
-      r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
+      r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category).and(tutor('online').eq(true))})
       .run(connection, function(err, cursor) {
         if(err) {throw err;}
         cursor.toArray(function(err, result) {
@@ -131,7 +131,7 @@ provider.rpc.provide('search', function (data, response) {
 //RPC Query
 
 function subjectTutor(subject, callback) {
-  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(subject)})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(subject).and(tutor('online').eq(true))})
   .run(connection, function(err, cursor) {
     if (err) {throw err;}
     cursor.toArray(function(err, result) {
@@ -142,7 +142,7 @@ function subjectTutor(subject, callback) {
 }
 
 function categoryTutor(category, callback) {
-  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category).and(tutor('online').eq(true))})
   .run(connection, function(err, cursor) {
     if (err) {throw err;}
     cursor.toArray(function(err, result) {
@@ -163,7 +163,7 @@ function search(params, callback) {
       }), tutor('subjects').contains(function(subject) {
         return subject.match('(?i)'+params)
       }), tutor('username').match('(?i)'+params))
-      .and(r.db("deepstream").table("profile").get(tutor("username"))("online").eq(true));
+      .and(tutor("online").eq(true));
     }).orderBy("username").limit(50)
   .run(connection, (err, cursor) => {
     if (err) {throw err;}
