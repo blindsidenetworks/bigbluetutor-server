@@ -48,6 +48,9 @@ function addDeviceToken(data, response) {
   var username = data.username;
   deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
     var tokens = userRecord.get("deviceTokens");
+    if (!tokens) {
+      tokens = [];
+    }
     if (tokens.indexOf(data.deviceToken) === -1) {
       tokens.push(data.deviceToken);
       userRecord.set('deviceTokens', tokens);
@@ -58,17 +61,12 @@ function addDeviceToken(data, response) {
 }
 
 function removeDeviceToken(data, response) {
-  winston.debug(data);
-  winston.debug(data.username);
-  winston.debug(data.deviceToken);
   var username = data.username;
   deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
 
     var tokens = userRecord.get("deviceTokens");
-    winston.debug(data.deviceToken);
     var tokenIndex = tokens.indexOf(data.deviceToken)
     if (tokenIndex !== -1) {
-      winston.debug('got hre');
       tokens.splice(tokenIndex, 1);
       userRecord.set('deviceTokens', tokens);
     }
