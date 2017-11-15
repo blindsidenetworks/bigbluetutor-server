@@ -167,6 +167,7 @@ function createUser(data, response)
                 requestMeetings: [],
                 deviceTokens: [],
                 messages: {},
+                newMessagesCount: {},
                 meeting: ""
               };
               profileRecord.set(profile);
@@ -174,11 +175,12 @@ function createUser(data, response)
               user =
               {
                 username: username,
-                profilePic: "http://www.freeiconspng.com/uploads/msn-people-person-profile-user-icon--icon-search-engine-16.png",
-                position: 'no position',
+                profilePic: "image",
+                position: 'position',
                 description: '',
                 ratings: {},
                 tutor: false,
+                online: false,
               };
               userRecord.set(user);
 
