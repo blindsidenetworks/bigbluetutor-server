@@ -26,7 +26,7 @@ const settings = {
         notificationMethod: 'sendTileSquareBlock',
     }
 };
-const PushNotifications = new require('node-pushnotifications');
+const PushNotifications = require('node-pushnotifications');
 const push = new PushNotifications(settings);
 
 // Single destination
