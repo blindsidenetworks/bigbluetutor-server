@@ -9,7 +9,7 @@ echo $new_status
 if [ "$STATUS" == "$new_status" ]
 then
   cd /home/ubuntu/bigbluetutor-server
-  sudo docker-compose -f docker-compose-production.yml stop
+  sudo docker-compose -f docker-compose-production.yml down
   #sudo docker-compose -f docker-compose-production.yml run --rm app npm run db:migrate
   sudo docker-compose -f docker-compose-production.yml up -d
 fi
