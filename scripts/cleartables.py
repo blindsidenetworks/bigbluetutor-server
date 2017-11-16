@@ -7,6 +7,11 @@ import sys
 
 dotenv.load_dotenv("./.env")
 
+confirm = input("Are you sure you want to clear the database (y/N)? ").lower()
+if(not(confirm == "yes" or confirm == "y")):
+    print("Database not cleared")
+    sys.exit()
+
 r.connect(os.environ.get("DB_HOST"), int(os.environ.get("DB_PORT"))).repl()
 list = r.db("deepstream").table_list().run()
 print("Table list:")
