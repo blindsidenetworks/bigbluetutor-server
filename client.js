@@ -45,12 +45,12 @@ function changeDescription(data, response) {
 }
 
 function addDeviceToken(data, response) {
-  winston.debug(data);
-  winston.debug(data.username);
-  winston.debug(data.deviceToken);
   var username = data.username;
   deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
     var tokens = userRecord.get("deviceTokens");
+    if (!tokens) {
+      tokens = [];
+    }
     if (tokens.indexOf(data.deviceToken) === -1) {
       tokens.push(data.deviceToken);
       userRecord.set('deviceTokens', tokens);
@@ -59,6 +59,21 @@ function addDeviceToken(data, response) {
     response.send({});
   });
 }
+
+function removeDeviceToken(data, response) {
+  var username = data.username;
+  deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
+
+    var tokens = userRecord.get("deviceTokens");
+    var tokenIndex = tokens.indexOf(data.deviceToken)
+    if (tokenIndex !== -1) {
+      tokens.splice(tokenIndex, 1);
+      userRecord.set('deviceTokens', tokens);
+    }
+    response.send({});
+  });
+}
+
 
 function registerTutor(data, response)
 {
@@ -115,15 +130,21 @@ function sendMessage(data, response) {
         record.whenReady(() => {
           clientRecord.whenReady(() => {
             var messages = record.get('messages');
+            var newMessagesCount = record.get('newMessagesCount');
+            
             if (!messages) {
               messages = {client:{pic: userRecord.get('profilePic'), messages:[{user:client,message:message, special: false}]}}
+              newMessagesCount[client] = 1;
             } else if(messages[client]) {
               messages[client].messages.push({user:client,message:message, special: false})
+              newMessagesCount[client] += 1;
             } else {
               messages[client] = {pic: userRecord.get('profilePic'),messages: [{user:client,message:message, special: false}]}
+              newMessagesCount[client] = 1;
             }
-            record.set('messages',messages);
-            sendNotification(record.get('deviceTokens'), 'Message from '+client, message);
+            record.set('newMessagesCount', newMessagesCount);
+            record.set('messages', messages);
+            sendNotification(record.get('deviceTokens'), client, message);
           });
        });
      });
@@ -134,6 +155,7 @@ function sendMessage(data, response) {
 
 deepstreamClient.rpc.provide('changeDescription', changeDescription);
 deepstreamClient.rpc.provide('addDeviceToken', addDeviceToken);
+deepstreamClient.rpc.provide('removeDeviceToken', removeDeviceToken);
 deepstreamClient.rpc.provide('registerTutor', registerTutor);
 deepstreamClient.rpc.provide('sendMessage', sendMessage);
 deepstreamClient.rpc.provide("createUser", createUser.createUser);

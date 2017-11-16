@@ -1,5 +1,6 @@
 var deepstreamClient;
 var createMeeting = require('./createMeeting.js');
+const sendNotification = require('./push.js');
 
 function getActiveItem(item)
 {
@@ -70,6 +71,8 @@ function requestMeeting(data, response)
             meetingMessage(messages[client].messages, clientMessages[contact].messages,
               {user: client, message: "Session in progress", special: "ActiveSession", active: true});
 
+            sendNotification(record.get('deviceTokens'), client, 'Meeting Started');
+
             record.set('messages', messages);
             clientRecord.set('messages', clientMessages);
             clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
@@ -87,20 +90,31 @@ function requestMeeting(data, response)
           } else if (pendingMeetings.indexOf(client) === -1) {
             userRecord.whenReady(() => {
               clientUserRecord.whenReady(() => {
+              var newMessagesCount = record.get('newMessagesCount');
+              var clientNewMessagesCount = clientRecord.get('newMessagesCount');
               if (!messages[client]) {
                 messages[client] = {pic: clientUserRecord.get('profilePic'), messages:[]};
+                newMessagesCount[client] = 0;
               }
               if (!clientMessages[contact]) {
                 clientMessages[contact] = {pic: userRecord.get('profilePic'), messages:[]};
+                clientNewMessagesCount[contact] = 0;
               }
 
               if(specialData && specialData.categories && specialData.time) {
                 clientMessages[contact].messages.push({user: client, message: 'I would like to request a tutoring session for '+specialData.categories+'. The preferred tutoring session length is '+specialData.time+' minutes.', special: false});
                 messages[client].messages.push({user: client, message: 'I would like to request a tutoring session for '+specialData.categories+'. The preferred tutoring session length is '+specialData.time+' minutes.', special: false});
+                newMessagesCount[client] += 1;
+                clientNewMessagesCount[contact] += 1;
               }
 
               messages[client].messages.push({user: client, message: "Meeting Request" , special: "IncomingRequest", active: true, data: specialData});
               clientMessages[contact].messages.push({user: client, message: "Waiting for " + client, special: "OutgoingRequest", active: true, data: specialData});
+              sendNotification(record.get('deviceTokens'), client, 'Meeting Request');
+              newMessagesCount[client] += 1;
+              clientNewMessagesCount[contact] += 1;
+              record.set('newMessagesCount',newMessagesCount);
+              clientRecord.set('newMessagesCount',clientNewMessagesCount);
               record.set('messages',messages);
               clientRecord.set('messages',clientMessages);
               pendingMeetings.push(client);
@@ -132,13 +146,19 @@ function declineMeeting(data, response)
           var pendingMeetings = record.get('pendingMeetings');
           var clientPendingMeetings = clientRecord.get('pendingMeetings');
           var requestMeetings = record.get('requestMeetings');
-          // var clientRequestMeetings = clientRecord.get('requestMeetings');
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
+          var newMessagesCount = record.get('newMessagesCount');
+          var clientNewMessagesCount = clientRecord.get('newMessagesCount');
 
           meetingMessage(messages[client].messages, clientMessages[contact].messages,
             {user: client, message: "Session Declined", special: "DeclinedRequest", active: false});
 
+          sendNotification(record.get('deviceTokens'), client, 'Meeting Declined');
+          newMessagesCount[client] += 1;
+          clientNewMessagesCount[contact] += 1;
+          record.set('newMessagesCount',newMessagesCount);
+          clientRecord.set('newMessagesCount',clientNewMessagesCount);
           record.set('messages', messages);
           clientRecord.set('messages', clientMessages);
           clientPendingMeetings.splice(clientPendingMeetings.indexOf(contact), 1);
@@ -156,7 +176,6 @@ function endMeeting(data, response)
 {
   var contact = data.contact;
   var client = data.client;
-  // var specialData = data.data;
   if (client === contact) { return; }
   deepstreamClient.record.has("profile/"+contact, (err, has) => {
     if (has) {
@@ -164,16 +183,23 @@ function endMeeting(data, response)
       var clientRecord = deepstreamClient.record.getRecord("profile/"+client);
       record.whenReady(() => {
         clientRecord.whenReady(() => {
-          // var pendingMeetings = record.get('pendingMeetings');
-          // var clientPendingMeetings = clientRecord.get('pendingMeetings');
-          // var requestMeetings = record.get('requestMeetings');
-          // var clientRequestMeetings = clientRecord.get('requestMeetings');
+          var pendingMeetings = record.get('pendingMeetings');
+          var clientPendingMeetings = clientRecord.get('pendingMeetings');
+          var requestMeetings = record.get('requestMeetings');
           var messages = record.get('messages');
           var clientMessages = clientRecord.get('messages');
+
+          var newMessagesCount = record.get('newMessagesCount');
+          var clientNewMessagesCount = clientRecord.get('newMessagesCount');
 
           meetingMessage(messages[client].messages, clientMessages[contact].messages,
             {user: client, message: "Session Ended", special: "EndedSession", active: false});
 
+          sendNotification(record.get('deviceTokens'), client, 'Meeting Ended');
+          newMessagesCount[client] += 1;
+          clientNewMessagesCount[contact] += 1;
+          record.set('newMessagesCount',newMessagesCount);
+          clientRecord.set('newMessagesCount',clientNewMessagesCount);
           record.set('messages', messages);
           clientRecord.set('messages', clientMessages);
           clientRecord.set('meeting','');

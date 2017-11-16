@@ -24,6 +24,7 @@ print()
 
 for table in tableList:
     print("Table name: " + table)
-    table = list(r.db("deepstream").table(table).without("messages").run())
+    table = list(r.db("deepstream").table(table).run())
+    #.without("messages").run())
     print(json.dumps(table, indent=1, sort_keys=True))
     print()
