@@ -89,11 +89,11 @@ function subjectTutorSubscribe(category, callback) {
 
 
 function categoryTutorSubscribe(category, callback) {
- r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category).and(tutor('online').eq(true))})
+ r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
-      r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category).and(tutor('online').eq(true))})
+      r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
       .run(connection, function(err, cursor) {
         if(err) {throw err;}
         cursor.toArray(function(err, result) {
@@ -141,7 +141,7 @@ function subjectTutor(subject, callback) {
 }
 
 function categoryTutor(category, callback) {
-  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category).and(tutor('online').eq(true))})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('categories').contains(category)})
   .run(connection, function(err, cursor) {
     if (err) {throw err;}
     cursor.toArray(function(err, result) {
