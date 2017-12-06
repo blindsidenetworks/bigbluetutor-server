@@ -11,5 +11,7 @@ then
   cd /home/ubuntu/bigbluetutor-server
   sudo docker-compose -f docker-compose-production.yml down
   #sudo docker-compose -f docker-compose-production.yml run --rm app npm run db:migrate
+  #docker rmi $(docker images -f dangling=true -q)
+  #sudo docker-compose -f docker-compose-production.yml run --rm app npm run db:cleartables
   sudo docker-compose -f docker-compose-production.yml up -d
 fi
