@@ -8,18 +8,18 @@ A tutoring application for mobile devices that let Tutors and Students to connec
 
 The BigBlueTutor server allows clients to connect through deepstream to communicate with each other.
 
-#Setup:
+# Setup:
 
-##Server setup:
+## Server setup:
 
-##Node.js setup
+## Node.js setup
   1. Install the latest version of Node.js with the following terminal commands:
   2. sudo apt-get update
   3. sudo apt-get install curl
   4. curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
   5. sudo apt-get install build-essential nodejs
 
-##RethinkDB installation
+## RethinkDB installation
 From https://www.rethinkdb.com/docs/install/ubuntu/
 Enter the following commands in the terminal to install RethinkDB:
   1. source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
@@ -28,16 +28,16 @@ Enter the following commands in the terminal to install RethinkDB:
   4. sudo apt-get update
   5. sudo apt-get install rethinkdb
 
-##RethinkDB setup
+## RethinkDB setup
 Create a new config file using the sample in /etc/rethinkdb: sudo cp /etc/rethinkdb/default.conf.sample /etc/rethinkdb/instances.d/instance1.conf
 Start RethinkDB with **sudo /etc/init.d/rethinkdb restart**. This will allow RethinkDB to start automatically when you start your system
 
-##RethinkDB Python driver setup
+## RethinkDB Python driver setup
 Run the following commands to install the RethinkDB Python driver:
   1. sudo apt-get install python python3 python3-pip
   2. pip3 install rethinkdb python-dotenv
 
-##Creating a Google API Console project
+## Creating a Google API Console project
 Follow the instructions here to create a Google API Console Project: 
 https://developers.google.com/identity/sign-in/web/devconsole-project
 After this, you will need to enable the Google+ API:
@@ -45,7 +45,7 @@ From the Google API console, go to the Dashboard and click **Enable APIs and ser
 Search for **Google+ API**
 Click on the Google+ API result and click **Enable**
 
-##Running the Deepstream server
+## Running the Deepstream server
 Install git: **sudo apt-get install git**
 Clone the server repo using git: **git clone https://github.com/blindsidenetworks/bigbluetutor-server.git**
 Enter the BigBlueTutor server directory: **cd bigbluetutor-server**
