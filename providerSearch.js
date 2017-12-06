@@ -71,11 +71,11 @@ provider.event.listen('category/tutor/.*', function(path, isSubscribed, response
 
 //SUBSCRIBE DB Listener
 function subjectTutorSubscribe(category, callback) {
-  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category).and(tutor('online').eq(true))})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category))})
   .changes()
   .run(connection, function(err, cursor) {
     cursor.each(() => {
-      r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category).and(tutor('online').eq(true))})
+      r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(category))})
       .run(connection, function(err, cursor) {
         if(err) {throw err;}
         cursor.toArray(function(err, result) {
@@ -130,7 +130,7 @@ provider.rpc.provide('search', function (data, response) {
 //RPC Query
 
 function subjectTutor(subject, callback) {
-  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(subject).and(tutor('online').eq(true))})
+  r.db('deepstream').table('user').filter(function(tutor) { return tutor('subjects').contains(subject))})
   .run(connection, function(err, cursor) {
     if (err) {throw err;}
     cursor.toArray(function(err, result) {
