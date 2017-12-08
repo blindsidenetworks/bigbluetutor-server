@@ -15,12 +15,22 @@ winston.level = config.LOG_LEVEL;
 
 //Google auth setup
 var googleClientID = config.GOOGLE_CLIENT_ID;
+var iosGoogleClientID = config.IOS_GOOGLE_CLIENT_ID;
 var auth = new GoogleAuth();
 var client = new auth.OAuth2(googleClientID, "", "");
+var iosClient = new auth.OAuth2(iosGoogleClientID, "", "");
 
 function googleLogin(authData, callback)
 {
-  client.verifyIdToken(authData.idToken, googleClientID, (error, login) =>
+  //Verify using the iOS client ID if the user is logging in from an iOS device
+  //Otherwise, default to Android
+  var clientID = googleClientID, authClient = client;
+  if(authData.platform === "ios")
+  {
+    clientID = iosGoogleClientID;
+    authClient = iosClient;
+  }
+  authClient.verifyIdToken(authData.idToken, clientID, (error, login) =>
   {
     if(error)
     {
