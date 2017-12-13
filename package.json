@@ -36,6 +36,7 @@
     "dotenv": "^4.0.0",
     "google-auth-library": "^0.11.0",
     "needle": "^2.0.1",
+    "node-gcm": "^0.14.9",
     "node-pushnotifications": "^1.0.18",
     "parallelshell": "^3.0.2",
     "rethinkdb": "^2.3.3",
