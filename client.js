@@ -46,13 +46,19 @@ function changeDescription(data, response) {
 
 function addDeviceToken(data, response) {
   var username = data.username;
+  var platform = data.platform;
+  var version = data.version;
   deepstreamClient.record.getRecord('profile/'+username).whenReady(userRecord => {
     var tokens = userRecord.get("deviceTokens");
     if (!tokens) {
       tokens = [];
     }
     if (tokens.indexOf(data.deviceToken) === -1) {
-      tokens.push(data.deviceToken);
+      tokens.push({
+        token: data.deviceToken,
+        platform: data.platform,
+        version: data.version
+      });
       userRecord.set('deviceTokens', tokens);
       winston.debug(userRecord.get('deviceTokens'));
     }
