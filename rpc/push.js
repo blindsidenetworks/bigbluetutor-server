@@ -31,7 +31,7 @@ const push = new PushNotifications(settings);
 const gcm = require('node-gcm');
 
 
-var sender = new gcm.Sender.('AIzaSyAzpT2EGeXxpupjaMiokYNikvKflqJtkoY');
+var sender = new gcm.Sender.(config.PUSH_AUTH_KEY);
 
 // Single destination
 //const registrationIds = 'INSERT_YOUR_DEVICE_ID';
