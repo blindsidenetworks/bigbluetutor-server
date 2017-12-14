@@ -29,7 +29,7 @@ const settings = {
 const PushNotifications = require('node-pushnotifications');
 const push = new PushNotifications(settings);
 const gcm = require('node-gcm');
-
+const apn = require('node-apn');
 
 var sender = new gcm.Sender.(config.PUSH_AUTH_KEY);
 
@@ -68,7 +68,7 @@ function sendNotification(tokens, title, message) {
     clickAction: '', // gcm for android. In ios, category will be used if not supplied
     locKey: '', // gcm, apn
     bodyLocArgs: '', // gcm, apn
-    titleLocKey: '', // gcm, apn
+s:open    titleLocKey: '', // gcm, apn
     titleLocArgs: '', // gcm, apn
     retries: 1, // gcm, apn
     encoding: '', // apn
@@ -97,8 +97,9 @@ function sendNotification(tokens, title, message) {
   if(androidTokens.length()) {
     var deviceTokens = androidTokens.map(a => a.token);
     sender.send(message, { registrationTokens: deviceTokens }, function (err, response) {
-      if(err) console.error(err);
-      else console.log(response);
+      winston.debug(deviceTokens)
+      if(err) winston.error(err);
+      else winston.debug(result);
     });
   }
 
