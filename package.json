@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/blindsidenetworks/bigbluetutor-server#readme",
   "dependencies": {
-    "apn": "^3.0.0-alpha1",
+    "apn": "^2.0",
     "body-parser": "^1.18.2",
     "deepstream.io": "^3.1.1",
     "deepstream.io-client-js": "^2.3.0",
