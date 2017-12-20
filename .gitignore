@@ -3,3 +3,4 @@ rethinkdb_data/
 package-lock.json
 .env
 .circleci/.*
+*.p8
