@@ -1,7 +1,6 @@
 var dotenv = require("dotenv");
 const winston = require("winston");
 const config = dotenv.config().parsed;
-const fs = require('fs');
 
 winston.level = config.LOG_LEVEL;
 
@@ -12,9 +11,9 @@ const settings = {
     },
     apn: {
         token: {
-            key: './apn.p8', // optionally: fs.readFileSync('./certs/key.p8')
-            keyId: config.APN_KEY_ID,
-            teamId: config.IOS_TEAM_ID,
+            key: './certs/key.p8', // optionally: fs.readFileSync('./certs/key.p8')
+            keyId: 'ABCD',
+            teamId: 'EFGH',
         },
     },
     adm: {
@@ -30,16 +29,10 @@ const settings = {
 const PushNotifications = require('node-pushnotifications');
 const push = new PushNotifications(settings);
 const gcm = require('node-gcm');
-const apn = require('apn');
+const apn = require('node-apn');
 
-var apnProvider = new apn.Provider({
-  token: {
-    key: './apn.p8',
-    keyId: config.APN_KEY_ID,
-    teamId: config.IOS_TEAM_ID
-  },
-  production: false
-});
+var sender = new gcm.Sender.(config.PUSH_AUTH_KEY);
+
 // Single destination
 //const registrationIds = 'INSERT_YOUR_DEVICE_ID';
 
@@ -47,17 +40,15 @@ var apnProvider = new apn.Provider({
 //const registrationIds = [];
 //registrationIds.push('INSERT_YOUR_DEVICE_ID');
 //registrationIds.push('INSERT_OTHER_DEVICE_ID');
-//console.log(registrationIds);
 
 function sendNotification(tokens, title, message) {
 
-console.log(config.APN_KEY_ID);
-console.log(config.IOS_TEAM_ID);
-var apnp = fs.readFileSync('./apn.p8', 'utf8')
-console.log(apnp);
   var androidTokens = tokens.filter(token => token.version === "react-native" && token.platform === 'android');
-  var iosTokens = tokens.filter(token => token.version === "react-native" && token.platform === 'ios');
+  var appleTokens = tokens.filter(token => token.version === "react-native" && token.platform === 'ios');
   var ionicTokens = tokens.filter(token => token.version === "ionic");
+
+  
+
 
   var pushNotification = {
     title: title, // REQUIRED
@@ -77,7 +68,7 @@ console.log(apnp);
     clickAction: '', // gcm for android. In ios, category will be used if not supplied
     locKey: '', // gcm, apn
     bodyLocArgs: '', // gcm, apn
-    titleLocKey: '', // gcm, apn
+s:open    titleLocKey: '', // gcm, apn
     titleLocArgs: '', // gcm, apn
     retries: 1, // gcm, apn
     encoding: '', // apn
@@ -85,60 +76,34 @@ console.log(apnp);
     sound: 'ping.aiff', // gcm, apn
     launchImage: '', // apn and gcm for ios
     action: '', // apn and gcm for ios
-    topic: 'org.reactjs.native.example.BigBlueTutor', // apn and gcm for ios
+    topic: '', // apn and gcm for ios
     category: '', // apn and gcm for ios
     mdm: '', // apn and gcm for ios
     urlArgs: '', // apn and gcm for ios
     truncateAtWordEnd: true, // apn and gcm for ios
   };
 
-  var sender = new gcm.Sender(config.PUSH_AUTH_KEY);
-
   var message = new gcm.Message({
     collapseKey: '',
     priority: 'high',
     delayWhileIdle: true,
     notification: {
-      title: title,
-      icon: 'myicon',
-      body: message
+      title: "Hello, World",
+      icon: "ic_launcher",
+      body: "This is a notification that will be displayed if your app is in the background."
     }
   });
 
-  var note = new apn.Notification();
-
-  note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
-  note.badge = 3;
-  note.sound = "ping.aiff";
-  note.alert = "\uD83D\uDCE7 \u2709 You have a new message";
-  note.payload = {'messageFrom': 'John Appleseed'};
-  note.topic = "org.reactjs.native.example.BigBlueTutor";
-
-
-  if(androidTokens.length) {
+  if(androidTokens.length()) {
     var deviceTokens = androidTokens.map(a => a.token);
     sender.send(message, { registrationTokens: deviceTokens }, function (err, response) {
-      if (err) {
-        winston.error(err);
-      } else {
-        winston.debug(response);
-      }
+      winston.debug(deviceTokens)
+      if(err) winston.error(err);
+      else winston.debug(result);
     });
   }
 
-  if(iosTokens.length) {
-    var deviceTokens = iosTokens.map(a => a.token);
-    winston.debug(deviceTokens);
-    apnProvider.send(note, deviceTokens).then((result) => {
-     // if (err) {
-     //   winston.error(err);
-     // } else {
-        winston.debug(result);
-     // }
-    });
-  }
-
-  if(ionicTokens.length) {
+  if(ionicTokens.length()) {
     var deviceTokens = ionicTokens.map(a => a.token);
     push.send(deviceTokens, pushNotification, (err, result) => {
       if (err) {

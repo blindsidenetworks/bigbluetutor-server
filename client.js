@@ -53,7 +53,7 @@ function addDeviceToken(data, response) {
     if (!tokens) {
       tokens = [];
     }
-    if (tokens.filter(a => a.token === data.deviceToken).length <= 0) {
+    if (tokens.indexOf(data.deviceToken) === -1) {
       tokens.push({
         token: data.deviceToken,
         platform: data.platform,
