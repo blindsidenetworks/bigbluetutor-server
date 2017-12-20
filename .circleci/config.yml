@@ -13,6 +13,7 @@ jobs:
       - type: shell
         name: Install RethinkDB
         command: |
+          sudo apt-get update
           sudo apt-get -y install lsb-core
           lsb_release -a
           echo "deb http://download.rethinkdb.com/apt `lsb_release -cs` main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
